@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "Q7sFTO3cprI=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\DAO TRONG THUC\\Documents\\BanVeMayBay\\BanVeMayBay\\BanVeMayBay.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\DAO TRONG THUC\\.nuget\\packages\\bouncycastle.cryptography\\2.5.1\\bouncycastle.cryptography.2.5.1.nupkg.sha512",
+    "C:\\Users\\DAO TRONG THUC\\.nuget\\packages\\google.protobuf\\3.30.0\\google.protobuf.3.30.0.nupkg.sha512",
+    "C:\\Users\\DAO TRONG THUC\\.nuget\\packages\\k4os.compression.lz4\\1.3.8\\k4os.compression.lz4.1.3.8.nupkg.sha512",
+    "C:\\Users\\DAO TRONG THUC\\.nuget\\packages\\k4os.compression.lz4.streams\\1.3.8\\k4os.compression.lz4.streams.1.3.8.nupkg.sha512",
+    "C:\\Users\\DAO TRONG THUC\\.nuget\\packages\\k4os.hash.xxhash\\1.0.8\\k4os.hash.xxhash.1.0.8.nupkg.sha512",
+    "C:\\Users\\DAO TRONG THUC\\.nuget\\packages\\mysql.data\\9.4.0\\mysql.data.9.4.0.nupkg.sha512",
+    "C:\\Users\\DAO TRONG THUC\\.nuget\\packages\\zstdsharp.port\\0.8.5\\zstdsharp.port.0.8.5.nupkg.sha512"
+  ],
+  "logs": []
+}

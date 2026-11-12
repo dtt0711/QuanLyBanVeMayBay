@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RollForward>LatestMajor</RollForward>
+    <RootNamespace>BanVeMayBay</RootNamespace>
+    <AssemblyName>BanVeMayBay</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="GUI\FrmMain.Designer.cs"><DependentUpon>FrmMain.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmHangHangKhong.Designer.cs"><DependentUpon>FrmHangHangKhong.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmMayBay.Designer.cs"><DependentUpon>FrmMayBay.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmChuyenBay.Designer.cs"><DependentUpon>FrmChuyenBay.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmKhachHang.Designer.cs"><DependentUpon>FrmKhachHang.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmHanhKhach.Designer.cs"><DependentUpon>FrmHanhKhach.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmNhanVien.Designer.cs"><DependentUpon>FrmNhanVien.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmCTKM.Designer.cs"><DependentUpon>FrmCTKM.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmVoucher.Designer.cs"><DependentUpon>FrmVoucher.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmHoaDon.Designer.cs"><DependentUpon>FrmHoaDon.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmPhieuChi.Designer.cs"><DependentUpon>FrmPhieuChi.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmCTHD.Designer.cs"><DependentUpon>FrmCTHD.cs</DependentUpon></Compile>
+    <Compile Update="GUI\FrmXemDS.Designer.cs"><DependentUpon>FrmXemDS.cs</DependentUpon></Compile>
+    <EmbeddedResource Update="GUI\FrmMain.resx"><DependentUpon>FrmMain.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmHangHangKhong.resx"><DependentUpon>FrmHangHangKhong.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmMayBay.resx"><DependentUpon>FrmMayBay.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmChuyenBay.resx"><DependentUpon>FrmChuyenBay.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmKhachHang.resx"><DependentUpon>FrmKhachHang.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmHanhKhach.resx"><DependentUpon>FrmHanhKhach.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmNhanVien.resx"><DependentUpon>FrmNhanVien.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmCTKM.resx"><DependentUpon>FrmCTKM.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmVoucher.resx"><DependentUpon>FrmVoucher.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmHoaDon.resx"><DependentUpon>FrmHoaDon.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmPhieuChi.resx"><DependentUpon>FrmPhieuChi.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmCTHD.resx"><DependentUpon>FrmCTHD.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Update="GUI\FrmXemDS.resx"><DependentUpon>FrmXemDS.cs</DependentUpon></EmbeddedResource>
+  </ItemGroup>
+
+</Project>
