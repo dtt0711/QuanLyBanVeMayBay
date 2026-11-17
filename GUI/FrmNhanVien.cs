@@ -10,6 +10,15 @@ public partial class FrmNhanVien : Form
     public FrmNhanVien()
     {
         InitializeComponent();
+        // Nhập Excel: mã chưa có thì thêm, mã đã có thì cập nhật; kiểm tra từng dòng như nhập tay
+        thanhTim.ChoNhapExcel();
+        thanhTim.NhapExcel += bang =>
+        {
+            NhanVienBUS bus = new NhanVienBUS();
+            string kq = bus.NhapExcel(bang);
+            MessageBox.Show(kq, "Nhập Excel");
+            btnDocDSNV_Click(this, EventArgs.Empty);
+        };
     }
 
     private void FrmNhanVien_Load(object sender, EventArgs e)

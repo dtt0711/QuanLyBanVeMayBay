@@ -49,6 +49,7 @@ namespace QuanLyBanVeMayBay.GUI
             btnLamMoi = new Button();
             btnDocDSHD = new Button();
             btnChiTiet = new Button();
+            btnInHD = new Button();
             pnl.SuspendLayout();
             SuspendLayout();
             lvDSHD.Columns.AddRange(new ColumnHeader[] { colMa, colNgay, colKH, colNV, colDV, colPhuongThuc, colTrangThai, colTong });
@@ -98,6 +99,7 @@ namespace QuanLyBanVeMayBay.GUI
             pnl.Controls.Add(btnLamMoi);
             pnl.Controls.Add(btnDocDSHD);
             pnl.Controls.Add(btnChiTiet);
+            pnl.Controls.Add(btnInHD);
             pnl.Dock = DockStyle.Top;
             pnl.Name = "pnl";
             pnl.Size = new Size(1100, 214);
@@ -218,6 +220,13 @@ namespace QuanLyBanVeMayBay.GUI
             btnChiTiet.Text = "Chi tiết hóa đơn";
             btnChiTiet.UseVisualStyleBackColor = true;
             btnChiTiet.Click += btnChiTiet_Click;
+            btnInHD.Location = new Point(670, 166);
+            btnInHD.Name = "btnInHD";
+            btnInHD.Size = new Size(140, 30);
+            btnInHD.TabIndex = 14;
+            btnInHD.Text = "In hóa đơn PDF";
+            btnInHD.UseVisualStyleBackColor = true;
+            btnInHD.Click += btnInHD_Click;
             thanhTim.Name = "thanhTim";
             thanhTim.Tim += thanhTim_Tim;
             thanhTim.TimNangCao += thanhTim_TimNangCao;
@@ -293,6 +302,7 @@ namespace QuanLyBanVeMayBay.GUI
         private Button btnLamMoi;
         private Button btnDocDSHD;
         private Button btnChiTiet;
+        private Button btnInHD;
         private ThanhTimKiem thanhTim;
         private Panel pnlCTHD;
         private Label lblCTHD;

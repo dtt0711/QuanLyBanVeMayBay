@@ -1,3 +1,6 @@
+using System.Data;
+using QuanLyBanVeMayBay.BUS;
+
 namespace QuanLyBanVeMayBay.GUI;
 
 // Thanh tìm kiếm dùng chung, đặt giữa phần nhập liệu và danh sách của mỗi form.
@@ -9,11 +12,20 @@ public class ThanhTimKiem : UserControl
     private Button btnTim;
     private Button btnTimNangCao;
     private Button btnTatCa;
+    private Button btnXuatExcel;
+    private Button btnNhapExcel;
     private Label lblKetQua;
 
     public event EventHandler Tim;
     public event EventHandler TimNangCao;
     public event EventHandler TatCa;
+    // Form nào cho nhập Excel thì gọi ChoNhapExcel() và bắt sự kiện này (nhận bảng đọc từ file)
+    public event Action<DataTable> NhapExcel;
+
+    public void ChoNhapExcel()
+    {
+        btnNhapExcel.Visible = true;
+    }
 
     public string TuKhoa => txtTuKhoa.Text;
 
@@ -24,6 +36,8 @@ public class ThanhTimKiem : UserControl
         btnTim = new Button();
         btnTimNangCao = new Button();
         btnTatCa = new Button();
+        btnXuatExcel = new Button();
+        btnNhapExcel = new Button();
         lblKetQua = new Label();
 
         lblTim.AutoSize = true;
@@ -56,19 +70,70 @@ public class ThanhTimKiem : UserControl
             txtTuKhoa.Clear();
             TatCa?.Invoke(this, EventArgs.Empty);
         };
+        btnXuatExcel.Location = new Point(760, 8);
+        btnXuatExcel.Size = new Size(110, 30);
+        btnXuatExcel.Text = "Xuất Excel";
+        btnXuatExcel.Click += (s, e) => XuatExcel();
+        btnNhapExcel.Location = new Point(880, 8);
+        btnNhapExcel.Size = new Size(110, 30);
+        btnNhapExcel.Text = "Nhập Excel";
+        btnNhapExcel.Visible = false;
+        btnNhapExcel.Click += (s, e) => DocExcel();
         lblKetQua.AutoSize = true;
-        lblKetQua.Location = new Point(764, 15);
+        lblKetQua.Location = new Point(1004, 15);
 
         Controls.Add(lblTim);
         Controls.Add(txtTuKhoa);
         Controls.Add(btnTim);
         Controls.Add(btnTimNangCao);
         Controls.Add(btnTatCa);
+        Controls.Add(btnXuatExcel);
+        Controls.Add(btnNhapExcel);
         Controls.Add(lblKetQua);
         Dock = DockStyle.Top;
         Height = 46;
         BackColor = Color.White;
         Name = "thanhTim";
+    }
+
+    // Xuất đúng những dòng đang hiện trong danh sách của form (kể cả kết quả tìm kiếm)
+    private void XuatExcel()
+    {
+        ListView lv = Parent?.Controls.OfType<ListView>().FirstOrDefault(l => l.Dock == DockStyle.Fill);
+        Form f = FindForm();
+        if (lv == null || f == null)
+            return;
+        string tieuDe = f.Text.Replace("Quản lý ", "");
+        string duongDan = GiaoDien.HoiNoiLuu(GiaoDien.TenFile(tieuDe), "xlsx");
+        if (duongDan == "")
+            return;
+        try
+        {
+            ExcelBUS.Xuat(duongDan, (tieuDe, GiaoDien.BangTuListView(lv)));
+            GiaoDien.BaoDaLuu(duongDan);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Không xuất được file Excel: " + ex.Message);
+        }
+    }
+
+    private void DocExcel()
+    {
+        string duongDan = GiaoDien.HoiMoFileExcel();
+        if (duongDan == "")
+            return;
+        DataTable bang;
+        try
+        {
+            bang = ExcelBUS.Doc(duongDan);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Không đọc được file Excel (file đang mở trong Excel?): " + ex.Message);
+            return;
+        }
+        NhapExcel?.Invoke(bang);
     }
 
     public void HienSoDong(int soDong)

@@ -11,6 +11,51 @@ public partial class FrmThongKe : Form
         InitializeComponent();
         foreach (DataGridView g in new[] { dgvTongThu, dgvQuyNV, dgvQuyKH, dgvQuyCB, dgvDoiTuong, dgvNhieuKhoa })
             KieuBang(g);
+        // Mỗi tab có nút xuất Excel và xuất PDF đúng bảng đang xem
+        ThemNutXuat(pnlTongThu, 770, () => "Tổng thu", () => MoTaKhoang(dtpTu1, dtpDen1) + ", theo " + cboKy1.Text.ToLower(),
+            () => new[] { ("Tổng thu theo " + cboKy1.Text.ToLower(), Bang(dgvTongThu)) });
+        ThemNutXuat(pnlTheoQuy, 310, () => "Tổng tiền hóa đơn theo quý", () => "Năm " + cboNam.Text,
+            () => new[] { ("Theo nhân viên và quý", Bang(dgvQuyNV)), ("Theo khách hàng và quý", Bang(dgvQuyKH)), ("Theo chuyến bay và quý", Bang(dgvQuyCB)) });
+        ThemNutXuat(pnlDoiTuong, 880, () => "Tổng tiền theo " + cboDoiTuong.Text.ToLower(), () => MoTaKhoang(dtpTu3, dtpDen3) + ", theo " + cboKy3.Text.ToLower(),
+            () => new[] { (cboDoiTuong.Text + " theo " + cboKy3.Text.ToLower(), Bang(dgvDoiTuong)) });
+        ThemNutXuat(pnlNhieuKhoa, 880, () => "Tổng tiền theo " + cboLoai.Text.ToLower(), () => MoTaKhoang(dtpTu4, dtpDen4),
+            () => new[] { (cboLoai.Text, Bang(dgvNhieuKhoa)) });
+    }
+
+    private static DataTable Bang(DataGridView g) => g.DataSource as DataTable ?? new DataTable();
+
+    private static string MoTaKhoang(DateTimePicker tu, DateTimePicker den) =>
+        "Từ " + tu.Value.ToString("dd/MM/yyyy") + " đến " + den.Value.ToString("dd/MM/yyyy");
+
+    private void ThemNutXuat(Panel pnl, int x, Func<string> tieuDe, Func<string> moTa, Func<(string, DataTable)[]> layBang)
+    {
+        Button excel = new Button { Text = "Xuất Excel", Location = new Point(x, 14), Size = new Size(100, 30) };
+        Button pdf = new Button { Text = "Xuất PDF", Location = new Point(x + 110, 14), Size = new Size(100, 30) };
+        GiaoDien.Nut(excel);
+        GiaoDien.Nut(pdf);
+        pnl.Controls.Add(excel);
+        pnl.Controls.Add(pdf);
+        excel.Click += (s, e) => Xuat("xlsx", tieuDe(), moTa(), layBang());
+        pdf.Click += (s, e) => Xuat("pdf", tieuDe(), moTa(), layBang());
+    }
+
+    private void Xuat(string loai, string tieuDe, string moTa, (string, DataTable)[] dsBang)
+    {
+        string duongDan = GiaoDien.HoiNoiLuu(GiaoDien.TenFile("ThongKe " + tieuDe), loai);
+        if (duongDan == "")
+            return;
+        try
+        {
+            if (loai == "pdf")
+                PdfBUS.XuatBang(duongDan, tieuDe.ToUpper(), moTa, dsBang);
+            else
+                ExcelBUS.Xuat(duongDan, dsBang);
+            GiaoDien.BaoDaLuu(duongDan);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Không xuất được file (file đang mở?): " + ex.Message);
+        }
     }
 
     private void FrmThongKe_Load(object sender, EventArgs e)

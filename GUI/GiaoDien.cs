@@ -1,4 +1,7 @@
 using System.Collections;
+using System.Data;
+using System.Diagnostics;
+using System.Globalization;
 
 namespace QuanLyBanVeMayBay.GUI;
 
@@ -139,7 +142,7 @@ public static class GiaoDien
             b.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 64, 175);
             b.FlatAppearance.MouseDownBackColor = Chinh;
         }
-        else if (b.Text.StartsWith("Xem") || b.Text.StartsWith("Tìm") || b.Text == "Thống kê" || b.Text == "Chọn" || b.Text == "Chi tiết hóa đơn")
+        else if (b.Text.StartsWith("Xem") || b.Text.StartsWith("Tìm") || b.Text.StartsWith("Xuất") || b.Text.StartsWith("Nhập") || b.Text.StartsWith("In ") || b.Text == "Thống kê" || b.Text == "Chọn" || b.Text == "Chi tiết hóa đơn")
         {
             b.BackColor = Chinh;
             b.ForeColor = Color.White;
@@ -188,5 +191,63 @@ public static class GiaoDien
             if (f.ShowDialog(cbo.FindForm()) == DialogResult.OK)
                 cbo.SelectedValue = FrmChon.MaChon;
         };
+    }
+
+    // Chuyển nội dung ListView thành bảng để xuất Excel. Ô dạng số (có dấu phân cách nghìn)
+    // và ngày được đổi kiểu; mã, CCCD, SĐT (có số 0 đầu) giữ nguyên dạng chữ.
+    public static DataTable BangTuListView(ListView lv)
+    {
+        DataTable bang = new DataTable();
+        foreach (ColumnHeader c in lv.Columns)
+            bang.Columns.Add(c.Text, typeof(object));
+        foreach (ListViewItem dong in lv.Items)
+        {
+            object[] o = new object[lv.Columns.Count];
+            for (int i = 0; i < o.Length; i++)
+                o[i] = i < dong.SubItems.Count ? KieuO(dong.SubItems[i].Text) : "";
+            bang.Rows.Add(o);
+        }
+        return bang;
+    }
+
+    private static object KieuO(string s)
+    {
+        if (DateTime.TryParseExact(s, new[] { "dd/MM/yyyy HH:mm", "dd/MM/yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime d))
+            return d;
+        bool coSoKhong = s.Length > 1 && s[0] == '0' && char.IsDigit(s[1]);
+        if (!coSoKhong && s.Length > 0 && s.All(ch => char.IsDigit(ch) || ch == ',' || ch == '.')
+            && decimal.TryParse(s, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal m))
+            return m;
+        return s;
+    }
+
+    // Hộp thoại chọn nơi lưu file; trả về "" nếu người dùng hủy
+    public static string HoiNoiLuu(string tenFile, string loai)
+    {
+        using SaveFileDialog dlg = new SaveFileDialog();
+        dlg.FileName = tenFile;
+        dlg.Filter = loai == "pdf" ? "PDF (*.pdf)|*.pdf" : "Excel (*.xlsx)|*.xlsx";
+        return dlg.ShowDialog() == DialogResult.OK ? dlg.FileName : "";
+    }
+
+    public static string HoiMoFileExcel()
+    {
+        using OpenFileDialog dlg = new OpenFileDialog();
+        dlg.Filter = "Excel (*.xlsx)|*.xlsx";
+        return dlg.ShowDialog() == DialogResult.OK ? dlg.FileName : "";
+    }
+
+    // Báo đã lưu và hỏi có mở file không
+    public static void BaoDaLuu(string duongDan)
+    {
+        if (MessageBox.Show("Đã lưu file:\n" + duongDan + "\n\nMở file ngay?", "Xuất file", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+            Process.Start(new ProcessStartInfo(duongDan) { UseShellExecute = true });
+    }
+
+    public static string TenFile(string ten)
+    {
+        foreach (char c in Path.GetInvalidFileNameChars())
+            ten = ten.Replace(c, '_');
+        return ten.Replace(' ', '_') + "_" + DateTime.Now.ToString("yyyyMMdd_HHmm");
     }
 }

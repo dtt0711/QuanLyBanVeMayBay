@@ -1,3 +1,4 @@
+using System.Data;
 using QuanLyBanVeMayBay.DAO;
 using QuanLyBanVeMayBay.DTO;
 
@@ -85,6 +86,65 @@ public class KhachHangBUS
                 return "Tài khoản " + x.TaiKhoan + " đã có người dùng.";
         }
         return "";
+    }
+
+    // Nhập khách hàng từ Excel: mã chưa có thì thêm, mã đã có thì cập nhật.
+    // Mỗi dòng đều qua KiemTra như khi nhập tay; dòng lỗi bị bỏ qua và báo lại.
+    // Không có cột Mật khẩu: khách cũ giữ mật khẩu cũ, khách mới lấy mật khẩu = số CCCD.
+    public string NhapExcel(DataTable bang)
+    {
+        if (!ExcelBUS.CoCot(bang, "Mã KH") || !ExcelBUS.CoCot(bang, "Họ tên") || !ExcelBUS.CoCot(bang, "CCCD"))
+            return "File cần có các cột: Mã KH, Họ tên, CCCD, SĐT, Email, Tài khoản, Mật khẩu (có thể bỏ), Địa chỉ.";
+        int them = 0, sua = 0;
+        List<string> loi = new List<string>();
+        for (int i = 0; i < bang.Rows.Count; i++)
+        {
+            DataRow r = bang.Rows[i];
+            string ma = ExcelBUS.Lay(r, "Mã KH");
+            if (ma == "")
+            {
+                loi.Add("Dòng " + (i + 2) + ": thiếu mã khách hàng.");
+                continue;
+            }
+            string cccd = ExcelBUS.Lay(r, "CCCD");
+            if (cccd.All(char.IsDigit) && cccd.Length < 12)
+                cccd = cccd.PadLeft(12, '0');      // Excel làm mất số 0 đầu khi ô là số
+            string sdt = ExcelBUS.Lay(r, "SĐT", "SDT");
+            if (sdt.All(char.IsDigit) && sdt.Length == 9)
+                sdt = "0" + sdt;
+            KhachHangDTO cu = timKiem(ma);
+            string matKhau = ExcelBUS.Lay(r, "Mật khẩu", "MatKhau");
+            if (matKhau == "")
+                matKhau = cu != null ? cu.MatKhau : cccd;
+            KhachHangDTO kh = new KhachHangDTO(ma, ExcelBUS.Lay(r, "Họ tên"), cccd, sdt, ExcelBUS.Lay(r, "Email"),
+                ExcelBUS.Lay(r, "Tài khoản", "TaiKhoan"), matKhau, ExcelBUS.Lay(r, "Địa chỉ", "DiaChi"));
+            string l = KiemTra(kh);
+            if (l != "")
+            {
+                loi.Add("Dòng " + (i + 2) + " (" + ma + "): " + l);
+                continue;
+            }
+            if (cu == null)
+            {
+                if (Them(kh)) them++;
+                else loi.Add("Dòng " + (i + 2) + " (" + ma + "): không ghi được vào CSDL.");
+            }
+            else
+            {
+                if (Sua(kh)) sua++;
+                else loi.Add("Dòng " + (i + 2) + " (" + ma + "): không cập nhật được.");
+            }
+        }
+        return KetQuaNhap(them, sua, loi);
+    }
+
+    public static string KetQuaNhap(int them, int sua, List<string> loi)
+    {
+        string kq = "Đã thêm " + them + " dòng, cập nhật " + sua + " dòng.";
+        if (loi.Count > 0)
+            kq += Environment.NewLine + loi.Count + " dòng bị bỏ qua:" + Environment.NewLine
+                + string.Join(Environment.NewLine, loi.Take(15)) + (loi.Count > 15 ? Environment.NewLine + "..." : "");
+        return kq;
     }
 
     // Tìm kiếm thường: giữ lại các dòng có ít nhất một field chứa từ khóa

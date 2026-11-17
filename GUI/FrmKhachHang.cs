@@ -10,6 +10,15 @@ public partial class FrmKhachHang : Form
     public FrmKhachHang()
     {
         InitializeComponent();
+        // Nhập Excel: mã chưa có thì thêm, mã đã có thì cập nhật; kiểm tra từng dòng như nhập tay
+        thanhTim.ChoNhapExcel();
+        thanhTim.NhapExcel += bang =>
+        {
+            KhachHangBUS bus = new KhachHangBUS();
+            string kq = bus.NhapExcel(bang);
+            MessageBox.Show(kq, "Nhập Excel");
+            btnDocDSKH_Click(this, EventArgs.Empty);
+        };
     }
 
     private void FrmKhachHang_Load(object sender, EventArgs e)

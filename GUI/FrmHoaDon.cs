@@ -224,6 +224,28 @@ public partial class FrmHoaDon : Form
             lvDSHD.Items[i].Selected = true;
     }
 
+    // Xuất hóa đơn đang chọn ra file PDF (thư viện QuestPDF)
+    private void btnInHD_Click(object sender, EventArgs e)
+    {
+        if (txtMaHD.Text == "" || txtMaHD.Enabled)
+        {
+            MessageBox.Show("Chọn một hóa đơn trong danh sách.");
+            return;
+        }
+        string duongDan = GiaoDien.HoiNoiLuu("HoaDon_" + txtMaHD.Text, "pdf");
+        if (duongDan == "")
+            return;
+        try
+        {
+            PdfBUS.XuatHoaDon(txtMaHD.Text, duongDan);
+            GiaoDien.BaoDaLuu(duongDan);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Không xuất được PDF (file đang mở?): " + ex.Message);
+        }
+    }
+
     private void thanhTim_Tim(object sender, EventArgs e)
     {
         HienThi(new HoaDonBUS().TimKiem(thanhTim.TuKhoa));
