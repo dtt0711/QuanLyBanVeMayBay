@@ -1,26 +1,31 @@
 using MySql.Data.MySqlClient;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.DAO;
+namespace QuanLyBanVeMayBay.DAO;
 
 public class NhanVienDAO
 {
+    MySqlConnection connection = MyConnection.GetConnection();
+
+    public NhanVienDAO()
+    {
+        MyConnection.Mo(connection);
+    }
+
     public List<NhanVienDTO> DocDSNV()
     {
         List<NhanVienDTO> dsnv = new List<NhanVienDTO>();
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "SELECT MaNV,Ho,Ten,ChucVu FROM NhanVien";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
                 string ma = reader.GetString(0);
                 string ho = reader.GetString("Ho");
                 string ten = reader.GetString("Ten");
-                string chucVu = reader.GetString("ChucVu");
+                string chucVu = reader.IsDBNull(reader.GetOrdinal("ChucVu")) ? "" : reader.GetString("ChucVu");
                 NhanVienDTO nv = new NhanVienDTO(ma, ho, ten, chucVu);
                 dsnv.Add(nv);//add to arraylist dsnv
             }
@@ -28,80 +33,46 @@ public class NhanVienDAO
         }
         catch
         {
-            throw new Exception("Lỗi đọc thông tin nhân viên!");
-        }
-        finally
-        {
-            connection.Close();
+            MessageBox.Show("Lỗi đọc thông tin nhân viên!");
         }
         return dsnv;
     }
 
-    public void Them(NhanVienDTO nv)
+    public bool Them(NhanVienDTO nv)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = nv.MaNV;
-            string ho = nv.Ho;
-            string ten = nv.Ten;
-            string chucVu = nv.ChucVu;
-            string query = "INSERT INTO NhanVien(MaNV,Ho,Ten,ChucVu) VALUES ('" + ma + "','" + ho + "','" + ten + "','" + chucVu + "')";
+            string query = "INSERT INTO NhanVien VALUES ('" + nv.MaNV
+                + "','" + nv.Ho + "','" + nv.Ten + "','" + nv.ChucVu + "')";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi ghi thông tin nhân viên!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi ghi thông tin nhân viên!"); return false; }
     }
 
-    public void Sua(NhanVienDTO nv)
+    public bool Sua(NhanVienDTO nv)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = nv.MaNV;
-            string ho = nv.Ho;
-            string ten = nv.Ten;
-            string chucVu = nv.ChucVu;
-            string query = "UPDATE NhanVien SET Ho='" + ho + "', Ten='" + ten + "', ChucVu='" + chucVu + "' WHERE MaNV='" + ma + "'";
+            string query = "UPDATE NhanVien SET Ho='" + nv.Ho + "',Ten='" + nv.Ten
+                + "',ChucVu='" + nv.ChucVu + "' WHERE MaNV='" + nv.MaNV + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi sửa thông tin nhân viên!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi cập nhật nhân viên!"); return false; }
     }
 
-    public void Xoa(string ma)
+    public bool Xoa(string ma)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "DELETE FROM NhanVien WHERE MaNV='" + ma + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi xóa thông tin nhân viên!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi xóa nhân viên!"); return false; }
     }
 }

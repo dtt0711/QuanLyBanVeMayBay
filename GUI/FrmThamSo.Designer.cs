@@ -1,0 +1,176 @@
+namespace QuanLyBanVeMayBay.GUI
+{
+    partial class FrmThamSo
+    {
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+                components.Dispose();
+            base.Dispose(disposing);
+        }
+
+        private void InitializeComponent()
+        {
+            thanhTim = new ThanhTimKiem();
+            lvDSTS = new ListView();
+            colMa = new ColumnHeader();
+            colTen = new ColumnHeader();
+            colGiaTri = new ColumnHeader();
+            colDonVi = new ColumnHeader();
+            pnl = new Panel();
+            lblMa = new Label();
+            txtMaThamSo = new TextBox();
+            lblTen = new Label();
+            txtTenThamSo = new TextBox();
+            lblGiaTri = new Label();
+            txtGiaTri = new TextBox();
+            lblDonVi = new Label();
+            txtDonVi = new TextBox();
+            btnThem = new Button();
+            btnSua = new Button();
+            btnXoa = new Button();
+            btnLamMoi = new Button();
+            btnDocDSTS = new Button();
+            pnl.SuspendLayout();
+            SuspendLayout();
+            lvDSTS.Columns.AddRange(new ColumnHeader[] { colMa, colTen, colGiaTri, colDonVi });
+            lvDSTS.Dock = DockStyle.Fill;
+            lvDSTS.FullRowSelect = true;
+            lvDSTS.GridLines = true;
+            lvDSTS.HideSelection = false;
+            lvDSTS.MultiSelect = false;
+            lvDSTS.Name = "lvDSTS";
+            lvDSTS.TabIndex = 0;
+            lvDSTS.View = View.Details;
+            lvDSTS.SelectedIndexChanged += lvDSTS_SelectedIndexChanged;
+            colMa.Text = "Mã tham số";
+            colMa.Width = 180;
+            colTen.Text = "Tên tham số";
+            colTen.Width = 320;
+            colGiaTri.Text = "Giá trị";
+            colGiaTri.Width = 120;
+            colDonVi.Text = "Đơn vị";
+            colDonVi.Width = 100;
+            pnl.Controls.Add(lblMa);
+            pnl.Controls.Add(txtMaThamSo);
+            pnl.Controls.Add(lblTen);
+            pnl.Controls.Add(txtTenThamSo);
+            pnl.Controls.Add(lblGiaTri);
+            pnl.Controls.Add(txtGiaTri);
+            pnl.Controls.Add(lblDonVi);
+            pnl.Controls.Add(txtDonVi);
+            pnl.Controls.Add(btnThem);
+            pnl.Controls.Add(btnSua);
+            pnl.Controls.Add(btnXoa);
+            pnl.Controls.Add(btnLamMoi);
+            pnl.Controls.Add(btnDocDSTS);
+            pnl.Dock = DockStyle.Top;
+            pnl.Name = "pnl";
+            pnl.Size = new Size(960, 142);
+            pnl.TabIndex = 1;
+            lblMa.AutoSize = true;
+            lblMa.Location = new Point(20, 18);
+            lblMa.Name = "lblMa";
+            lblMa.Text = "Mã tham số:";
+            txtMaThamSo.Location = new Point(120, 15);
+            txtMaThamSo.Name = "txtMaThamSo";
+            txtMaThamSo.Size = new Size(260, 23);
+            txtMaThamSo.TabIndex = 0;
+            lblTen.AutoSize = true;
+            lblTen.Location = new Point(460, 18);
+            lblTen.Name = "lblTen";
+            lblTen.Text = "Tên tham số:";
+            txtTenThamSo.Location = new Point(560, 15);
+            txtTenThamSo.Name = "txtTenThamSo";
+            txtTenThamSo.Size = new Size(320, 23);
+            txtTenThamSo.TabIndex = 1;
+            lblGiaTri.AutoSize = true;
+            lblGiaTri.Location = new Point(20, 54);
+            lblGiaTri.Name = "lblGiaTri";
+            lblGiaTri.Text = "Giá trị:";
+            txtGiaTri.Location = new Point(120, 51);
+            txtGiaTri.Name = "txtGiaTri";
+            txtGiaTri.Size = new Size(260, 23);
+            txtGiaTri.TabIndex = 2;
+            lblDonVi.AutoSize = true;
+            lblDonVi.Location = new Point(460, 54);
+            lblDonVi.Name = "lblDonVi";
+            lblDonVi.Text = "Đơn vị:";
+            txtDonVi.Location = new Point(560, 51);
+            txtDonVi.Name = "txtDonVi";
+            txtDonVi.Size = new Size(320, 23);
+            txtDonVi.TabIndex = 3;
+            btnThem.Location = new Point(20, 92);
+            btnThem.Name = "btnThem";
+            btnThem.Size = new Size(90, 30);
+            btnThem.TabIndex = 4;
+            btnThem.Text = "Thêm";
+            btnThem.Click += btnThem_Click;
+            btnSua.Location = new Point(120, 92);
+            btnSua.Name = "btnSua";
+            btnSua.Size = new Size(90, 30);
+            btnSua.TabIndex = 5;
+            btnSua.Text = "Sửa";
+            btnSua.Click += btnSua_Click;
+            btnXoa.Location = new Point(220, 92);
+            btnXoa.Name = "btnXoa";
+            btnXoa.Size = new Size(90, 30);
+            btnXoa.TabIndex = 6;
+            btnXoa.Text = "Xóa";
+            btnXoa.Click += btnXoa_Click;
+            btnLamMoi.Location = new Point(320, 92);
+            btnLamMoi.Name = "btnLamMoi";
+            btnLamMoi.Size = new Size(90, 30);
+            btnLamMoi.TabIndex = 7;
+            btnLamMoi.Text = "Làm mới";
+            btnLamMoi.Click += btnLamMoi_Click;
+            btnDocDSTS.Location = new Point(420, 92);
+            btnDocDSTS.Name = "btnDocDSTS";
+            btnDocDSTS.Size = new Size(90, 30);
+            btnDocDSTS.TabIndex = 8;
+            btnDocDSTS.Text = "Đọc DS";
+            btnDocDSTS.Click += btnDocDSTS_Click;
+            thanhTim.Name = "thanhTim";
+            thanhTim.Tim += thanhTim_Tim;
+            thanhTim.TimNangCao += thanhTim_TimNangCao;
+            thanhTim.TatCa += thanhTim_TatCa;
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(960, 620);
+            Controls.Add(lvDSTS);
+            Controls.Add(thanhTim);
+            Controls.Add(pnl);
+            Name = "FrmThamSo";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Quản lý tham số";
+            Load += FrmThamSo_Load;
+            pnl.ResumeLayout(false);
+            pnl.PerformLayout();
+            ResumeLayout(false);
+            GiaoDien.ApDung(this);
+        }
+
+        private ThanhTimKiem thanhTim;
+        private ListView lvDSTS;
+        private ColumnHeader colMa;
+        private ColumnHeader colTen;
+        private ColumnHeader colGiaTri;
+        private ColumnHeader colDonVi;
+        private Panel pnl;
+        private Label lblMa;
+        private TextBox txtMaThamSo;
+        private Label lblTen;
+        private TextBox txtTenThamSo;
+        private Label lblGiaTri;
+        private TextBox txtGiaTri;
+        private Label lblDonVi;
+        private TextBox txtDonVi;
+        private Button btnThem;
+        private Button btnSua;
+        private Button btnXoa;
+        private Button btnLamMoi;
+        private Button btnDocDSTS;
+    }
+}

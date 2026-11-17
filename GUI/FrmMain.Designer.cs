@@ -1,4 +1,4 @@
-namespace BanVeMayBay.GUI
+namespace QuanLyBanVeMayBay.GUI
 {
     partial class FrmMain
     {
@@ -20,7 +20,10 @@ namespace BanVeMayBay.GUI
             flowMenu = new FlowLayoutPanel();
             lblDanhMuc = new Label();
             mnuHangHangKhong = new Button();
+            mnuSanBay = new Button();
             mnuMayBay = new Button();
+            mnuHangVe = new Button();
+            mnuGhe = new Button();
             mnuChuyenBay = new Button();
             mnuKhachHang = new Button();
             mnuHanhKhach = new Button();
@@ -29,8 +32,13 @@ namespace BanVeMayBay.GUI
             mnuCTKM = new Button();
             mnuVoucher = new Button();
             lblGiaoDich = new Label();
+            mnuDatVe = new Button();
+            mnuVe = new Button();
             mnuHoaDon = new Button();
-            mnuPhieuChi = new Button();
+            lblHeThong = new Label();
+            mnuThamSo = new Button();
+            lblBaoCao = new Label();
+            mnuThongKe = new Button();
             pnlTren.SuspendLayout();
             pnlMenu.SuspendLayout();
             flowMenu.SuspendLayout();
@@ -77,7 +85,10 @@ namespace BanVeMayBay.GUI
             flowMenu.BackColor = Color.FromArgb(15, 35, 71);
             flowMenu.Controls.Add(lblDanhMuc);
             flowMenu.Controls.Add(mnuHangHangKhong);
+            flowMenu.Controls.Add(mnuSanBay);
             flowMenu.Controls.Add(mnuMayBay);
+            flowMenu.Controls.Add(mnuHangVe);
+            flowMenu.Controls.Add(mnuGhe);
             flowMenu.Controls.Add(mnuChuyenBay);
             flowMenu.Controls.Add(mnuKhachHang);
             flowMenu.Controls.Add(mnuHanhKhach);
@@ -86,8 +97,13 @@ namespace BanVeMayBay.GUI
             flowMenu.Controls.Add(mnuCTKM);
             flowMenu.Controls.Add(mnuVoucher);
             flowMenu.Controls.Add(lblGiaoDich);
+            flowMenu.Controls.Add(mnuDatVe);
+            flowMenu.Controls.Add(mnuVe);
             flowMenu.Controls.Add(mnuHoaDon);
-            flowMenu.Controls.Add(mnuPhieuChi);
+            flowMenu.Controls.Add(lblBaoCao);
+            flowMenu.Controls.Add(mnuThongKe);
+            flowMenu.Controls.Add(lblHeThong);
+            flowMenu.Controls.Add(mnuThamSo);
             flowMenu.Dock = DockStyle.Fill;
             flowMenu.FlowDirection = FlowDirection.TopDown;
             flowMenu.Name = "flowMenu";
@@ -108,10 +124,25 @@ namespace BanVeMayBay.GUI
             DatNut(mnuHangHangKhong, "mnuHangHangKhong", "Hãng hàng không");
             mnuHangHangKhong.Click += mnuHangHangKhong_Click;
             // 
+            // mnuSanBay
+            // 
+            DatNut(mnuSanBay, "mnuSanBay", "Sân bay");
+            mnuSanBay.Click += mnuSanBay_Click;
+            // 
             // mnuMayBay
             // 
             DatNut(mnuMayBay, "mnuMayBay", "Máy bay");
             mnuMayBay.Click += mnuMayBay_Click;
+            // 
+            // mnuHangVe
+            // 
+            DatNut(mnuHangVe, "mnuHangVe", "Hạng vé");
+            mnuHangVe.Click += mnuHangVe_Click;
+            // 
+            // mnuGhe
+            // 
+            DatNut(mnuGhe, "mnuGhe", "Ghế");
+            mnuGhe.Click += mnuGhe_Click;
             // 
             // mnuChuyenBay
             // 
@@ -161,15 +192,48 @@ namespace BanVeMayBay.GUI
             lblGiaoDich.Size = new Size(180, 18);
             lblGiaoDich.Text = "GIAO DỊCH";
             // 
+            // mnuDatVe
+            // 
+            DatNut(mnuDatVe, "mnuDatVe", "Đặt vé");
+            mnuDatVe.Click += mnuDatVe_Click;
+            // 
+            // mnuVe
+            // 
+            DatNut(mnuVe, "mnuVe", "Vé");
+            mnuVe.Click += mnuVe_Click;
+            // 
             // mnuHoaDon
             // 
             DatNut(mnuHoaDon, "mnuHoaDon", "Hóa đơn");
             mnuHoaDon.Click += mnuHoaDon_Click;
             // 
-            // mnuPhieuChi
+            // lblHeThong
             // 
-            DatNut(mnuPhieuChi, "mnuPhieuChi", "Phiếu chi");
-            mnuPhieuChi.Click += mnuPhieuChi_Click;
+            lblHeThong.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+            lblHeThong.ForeColor = Color.FromArgb(148, 163, 184);
+            lblHeThong.Margin = new Padding(8, 16, 3, 6);
+            lblHeThong.Name = "lblHeThong";
+            lblHeThong.Size = new Size(180, 18);
+            lblHeThong.Text = "HỆ THỐNG";
+            // 
+            // mnuThamSo
+            // 
+            DatNut(mnuThamSo, "mnuThamSo", "Tham số");
+            mnuThamSo.Click += mnuThamSo_Click;
+            // 
+            // lblBaoCao
+            // 
+            lblBaoCao.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+            lblBaoCao.ForeColor = Color.FromArgb(148, 163, 184);
+            lblBaoCao.Margin = new Padding(8, 16, 3, 6);
+            lblBaoCao.Name = "lblBaoCao";
+            lblBaoCao.Size = new Size(180, 18);
+            lblBaoCao.Text = "BÁO CÁO";
+            // 
+            // mnuThongKe
+            // 
+            DatNut(mnuThongKe, "mnuThongKe", "Thống kê doanh thu");
+            mnuThongKe.Click += mnuThongKe_Click;
             // 
             // FrmMain
             // 
@@ -201,9 +265,9 @@ namespace BanVeMayBay.GUI
             nut.FlatStyle = FlatStyle.Flat;
             nut.Font = new Font("Segoe UI", 10F);
             nut.ForeColor = Color.White;
-            nut.Margin = new Padding(0, 1, 0, 1);
+            nut.Margin = new Padding(0, 0, 0, 0);
             nut.Name = ten;
-            nut.Size = new Size(196, 36);
+            nut.Size = new Size(196, 32);
             nut.Text = chu;
             nut.TextAlign = ContentAlignment.MiddleLeft;
             nut.Padding = new Padding(12, 0, 0, 0);
@@ -216,7 +280,10 @@ namespace BanVeMayBay.GUI
         private FlowLayoutPanel flowMenu;
         private Label lblDanhMuc;
         private Button mnuHangHangKhong;
+        private Button mnuSanBay;
         private Button mnuMayBay;
+        private Button mnuHangVe;
+        private Button mnuGhe;
         private Button mnuChuyenBay;
         private Button mnuKhachHang;
         private Button mnuHanhKhach;
@@ -225,7 +292,12 @@ namespace BanVeMayBay.GUI
         private Button mnuCTKM;
         private Button mnuVoucher;
         private Label lblGiaoDich;
+        private Button mnuDatVe;
+        private Button mnuVe;
         private Button mnuHoaDon;
-        private Button mnuPhieuChi;
+        private Label lblHeThong;
+        private Button mnuThamSo;
+        private Label lblBaoCao;
+        private Button mnuThongKe;
     }
 }

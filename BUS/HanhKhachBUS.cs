@@ -1,12 +1,11 @@
-using BanVeMayBay.DAO;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DAO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.BUS;
+namespace QuanLyBanVeMayBay.BUS;
 
 public class HanhKhachBUS
 {
-    private static List<HanhKhachDTO>? dshk;
-    private KhachHangDAO khachHangDao = new KhachHangDAO();
+    private static List<HanhKhachDTO> dshk;
 
     public List<HanhKhachDTO> DocDSHK()
     {
@@ -19,7 +18,6 @@ public class HanhKhachBUS
         return dshk;
     }
 
-    // xóa danh sách đã lưu để lần đọc sau lấy lại dữ liệu mới từ CSDL
     public static void LamMoiDS()
     {
         dshk = null;
@@ -31,52 +29,97 @@ public class HanhKhachBUS
         return dao.DocTheoKH(maCha);
     }
 
-    private void KiemTra(HanhKhachDTO hk)
+    public bool Them(HanhKhachDTO hk)
     {
-        if (string.IsNullOrWhiteSpace(hk.MaHK))
-            throw new Exception("Mã HK không được để trống!");
-        if (string.IsNullOrWhiteSpace(hk.HoTen))
-            throw new Exception("Họ tên không được để trống!");
-        if (string.IsNullOrWhiteSpace(hk.CCCD))
-            throw new Exception("CCCD không được để trống!");
-        if (string.IsNullOrWhiteSpace(hk.GioiTinh))
-            throw new Exception("Giới tính không được để trống!");
-        if (string.IsNullOrWhiteSpace(hk.MaKH))
-            throw new Exception("Mã KH không được để trống!");
-        if (string.IsNullOrWhiteSpace(hk.LoaiKH))
-            throw new Exception("Loại KH không được để trống!");
-        if (hk.NgaySinh > DateTime.Now)
-            throw new Exception("Ngày sinh không hợp lệ!");
-        if (!khachHangDao.DocDSKH().Any(t => t.MaKH == hk.MaKH))
-            throw new Exception("Mã KH không tồn tại!");
+        DocDSHK();
+        HanhKhachDAO dao = new HanhKhachDAO();
+        if (!dao.Them(hk))
+            return false;
+        dshk.Add(hk);
+        return true;
     }
 
-    public void Them(HanhKhachDTO hk)
+    public bool Sua(HanhKhachDTO hk)
     {
+        DocDSHK();
         HanhKhachDAO dao = new HanhKhachDAO();
-        KiemTra(hk);
-        if (dao.DocDSHK().Any(t => t.MaHK == hk.MaHK))
-            throw new Exception("Mã HK đã tồn tại!");
-        dao.Them(hk);
-        LamMoiDS();
+        if (!dao.Sua(hk))
+            return false;
+        foreach (HanhKhachDTO h in dshk)
+            if (h.MaHK.CompareTo(hk.MaHK) == 0)
+            {
+                h.HoTen = hk.HoTen;
+                h.NgaySinh = hk.NgaySinh;
+                h.CCCD = hk.CCCD;
+                h.GioiTinh = hk.GioiTinh;
+                h.MaKH = hk.MaKH;
+                h.LoaiKH = hk.LoaiKH;
+            }
+        return true;
     }
 
-    public void Sua(HanhKhachDTO hk)
+    public bool Xoa(string ma)
     {
+        DocDSHK();
         HanhKhachDAO dao = new HanhKhachDAO();
-        KiemTra(hk);
-        if (!dao.DocDSHK().Any(t => t.MaHK == hk.MaHK))
-            throw new Exception("Không tìm thấy Mã HK cần sửa!");
-        dao.Sua(hk);
-        LamMoiDS();
+        if (!dao.Xoa(ma))
+            return false;
+        dshk.Remove(timKiem(ma));
+        return true;
     }
 
-    public void Xoa(string ma)
+    // Loại hành khách tự tính theo tuổi, không cho nhập: tuổi <= TUOI_TRE_EM là trẻ em
+    public static string TinhLoaiHK(DateTime ngaySinh)
     {
-        HanhKhachDAO dao = new HanhKhachDAO();
-        if (string.IsNullOrWhiteSpace(ma))
-            throw new Exception("Chưa chọn Mã HK cần xóa!");
-        dao.Xoa(ma);
-        LamMoiDS();
+        int tuoiTreEm = (int)ThamSoBUS.LayGiaTri("TUOI_TRE_EM", 12);
+        DateTime homNay = DateTime.Today;
+        int tuoi = homNay.Year - ngaySinh.Year;
+        if (ngaySinh.Date > homNay.AddYears(-tuoi))
+            tuoi--;
+        return tuoi <= tuoiTreEm ? "Trẻ em" : "Người lớn";
+    }
+
+    public string KiemTra(HanhKhachDTO x)
+    {
+        if (x.HoTen.Trim() == "")
+            return "Nhập họ tên hành khách.";
+        if (x.NgaySinh.Date > DateTime.Today)
+            return "Ngày sinh không được sau hôm nay.";
+        return "";
+    }
+
+    // Tìm kiếm thường: giữ lại các dòng có ít nhất một field chứa từ khóa
+    public List<HanhKhachDTO> TimKiem(string tuKhoa)
+    {
+        List<HanhKhachDTO> kq = new List<HanhKhachDTO>();
+        foreach (HanhKhachDTO x in DocDSHK())
+            if (TimKiemBUS.Chua(x.MaHK, tuKhoa)
+                || TimKiemBUS.Chua(x.HoTen, tuKhoa)
+                || TimKiemBUS.Chua(x.CCCD, tuKhoa)
+                || TimKiemBUS.Chua(x.GioiTinh, tuKhoa)
+                || TimKiemBUS.Chua(x.MaKH, tuKhoa)
+                || TimKiemBUS.Chua(x.LoaiKH, tuKhoa))
+                kq.Add(x);
+        return kq;
+    }
+
+    // Tìm kiếm nâng cao: lọc theo các điều kiện and, or, not, >, ≥, <, ≤, <>
+    public List<HanhKhachDTO> TimNangCao(List<DieuKienDTO> dsDK)
+    {
+        return TimKiemBUS.Loc(DocDSHK(), dsDK);
+    }
+
+    public bool TrungMa(string ma)
+    {
+        DocDSHK();
+        return timKiem(ma) != null;
+    }
+
+    public HanhKhachDTO timKiem(string ma)
+    {
+        foreach (HanhKhachDTO h in DocDSHK())
+            if (h.MaHK.CompareTo(ma) == 0)
+                return h;
+        return null;
     }
 }

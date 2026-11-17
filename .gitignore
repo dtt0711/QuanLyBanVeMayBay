@@ -1,0 +1,5 @@
+# File sinh ra khi build và cấu hình riêng của Visual Studio
+bin/
+obj/
+.vs/
+*.user

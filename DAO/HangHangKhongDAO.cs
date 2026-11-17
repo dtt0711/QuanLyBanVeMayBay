@@ -1,99 +1,74 @@
 using MySql.Data.MySqlClient;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.DAO;
+namespace QuanLyBanVeMayBay.DAO;
 
 public class HangHangKhongDAO
 {
+    MySqlConnection connection = MyConnection.GetConnection();
+
+    public HangHangKhongDAO()
+    {
+        MyConnection.Mo(connection);
+    }
+
     public List<HangHangKhongDTO> DocDS()
     {
         List<HangHangKhongDTO> dshhk = new List<HangHangKhongDTO>();
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "SELECT MaHHK,TenHang FROM HangHangKhong";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
                 string ma = reader.GetString(0);
-                string ten = reader.GetString("TenHang");
-                HangHangKhongDTO hhk = new HangHangKhongDTO();
-                hhk.MaHHK = ma;
-                hhk.TenHang = ten;
-                dshhk.Add(hhk);
+                string tenHang = reader.GetString("TenHang");
+                HangHangKhongDTO hhk = new HangHangKhongDTO(ma, tenHang);
+                dshhk.Add(hhk);//add to arraylist dshhk
             }
             reader.Close();
         }
         catch
         {
-            throw new Exception("Lỗi đọc thông tin hãng hàng không!");
-        }
-        finally
-        {
-            connection.Close();
+            MessageBox.Show("Lỗi đọc thông tin hãng hàng không!");
         }
         return dshhk;
     }
 
-    public void Them(HangHangKhongDTO hhk)
+    public bool Them(HangHangKhongDTO hhk)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "INSERT INTO HangHangKhong VALUES ('" + hhk.MaHHK + "','" + hhk.TenHang + "')";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi ghi thông tin hãng hàng không!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi ghi thông tin hãng hàng không!"); return false; }
     }
 
-    public void Sua(HangHangKhongDTO hhk)
+    public bool Sua(HangHangKhongDTO hhk)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "UPDATE HangHangKhong SET TenHang='" + hhk.TenHang + "' WHERE MaHHK='" + hhk.MaHHK + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi sửa thông tin hãng hàng không!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi cập nhật hãng hàng không!"); return false; }
     }
 
-    public void Xoa(string ma)
+    public bool Xoa(string ma)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "DELETE FROM HangHangKhong WHERE MaHHK='" + ma + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi xóa thông tin hãng hàng không!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi xóa hãng hàng không!"); return false; }
     }
 }

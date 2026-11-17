@@ -1,14 +1,15 @@
--- BanVeMayBay — script MySQL 8
+-- QuanLyBanVeMayBay — script MySQL 8
 -- Chạy cả file trong MySQL Workbench hoặc: mysql -u root -p < BanVeMayBay.sql
 
-CREATE DATABASE IF NOT EXISTS BanVeMayBay
+CREATE DATABASE IF NOT EXISTS banvemaybay
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE BanVeMayBay;
+USE banvemaybay;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS ThamSo;
 DROP TABLE IF EXISTS ChiTietHoaDon;
 DROP TABLE IF EXISTS Ve;
 DROP TABLE IF EXISTS HoaDon;
@@ -26,6 +27,14 @@ DROP TABLE IF EXISTS SanBay;
 DROP TABLE IF EXISTS HangHangKhong;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE ThamSo (
+  MaThamSo  VARCHAR(30)   NOT NULL,
+  TenThamSo VARCHAR(100)  NOT NULL,
+  GiaTri    DECIMAL(18,2) NOT NULL,
+  DonVi     VARCHAR(20)   NULL,
+  PRIMARY KEY (MaThamSo)
+) ENGINE=InnoDB;
 
 CREATE TABLE HangHangKhong (
   MaHHK   VARCHAR(10)  NOT NULL,
@@ -66,10 +75,10 @@ CREATE TABLE HangVe (
   MaHV     VARCHAR(10)  NOT NULL,
   TenHV    VARCHAR(50)  NOT NULL,
   HanhLyKg INT          NOT NULL,
-  DonGiaVe DECIMAL(18,0) NOT NULL,
+  HeSoGia  DECIMAL(4,2) NOT NULL,   -- giá vé = ChuyenBay.GiaVe x HeSoGia
   PRIMARY KEY (MaHV),
   CONSTRAINT CK_HangVe_HanhLyKg CHECK (HanhLyKg >= 0),
-  CONSTRAINT CK_HangVe_DonGiaVe CHECK (DonGiaVe >= 0)
+  CONSTRAINT CK_HangVe_HeSoGia CHECK (HeSoGia > 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE CTKM (
@@ -173,6 +182,7 @@ CREATE TABLE HoaDon (
   PhuongThucTT VARCHAR(30)    NULL,
   TrangThai    VARCHAR(30)    NOT NULL DEFAULT 'Chưa thanh toán',
   PRIMARY KEY (MaHD),
+  UNIQUE KEY UQ_HoaDon_MaDV (MaDV),
   CONSTRAINT FK_HD_KH FOREIGN KEY (MaKH) REFERENCES KhachHang (MaKH),
   CONSTRAINT FK_HD_NV FOREIGN KEY (MaNV) REFERENCES NhanVien (MaNV),
   CONSTRAINT FK_HD_DV FOREIGN KEY (MaDV) REFERENCES DatVe (MaDV)
@@ -186,9 +196,10 @@ CREATE TABLE Ve (
   MaHK        VARCHAR(10)    NOT NULL,
   DonGiaVe    DECIMAL(18,0)  NOT NULL,
   Ngay        DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  MaDV        VARCHAR(10)    NULL,
+  MaDV        VARCHAR(10)    NOT NULL,
   PRIMARY KEY (MaVe),
   UNIQUE KEY UQ_Ve_Chuyen_Ghe (MaChuyenBay, MaGhe),
+  UNIQUE KEY UQ_Ve_Chuyen_HK (MaChuyenBay, MaHK),
   KEY IX_Ve_MaDV (MaDV),
   CONSTRAINT FK_Ve_CB FOREIGN KEY (MaChuyenBay) REFERENCES ChuyenBay (MaChuyenBay),
   CONSTRAINT FK_Ve_HV FOREIGN KEY (MaHV) REFERENCES HangVe (MaHV),
@@ -205,9 +216,9 @@ CREATE TABLE ChiTietHoaDon (
   SL       INT            NOT NULL DEFAULT 1,
   ThanhTien DECIMAL(18,0) AS (SL * DonGiaVe) STORED,
   PRIMARY KEY (MaHD, MaVe),
-  KEY IX_CTHD_MaVe (MaVe),
+  UNIQUE KEY UQ_CTHD_MaVe (MaVe),
   CONSTRAINT FK_ChiTietHoaDon_HoaDon FOREIGN KEY (MaHD) REFERENCES HoaDon (MaHD),
   CONSTRAINT FK_ChiTietHoaDon_Ve FOREIGN KEY (MaVe) REFERENCES Ve (MaVe),
-  CONSTRAINT CK_ChiTietHoaDon_SL CHECK (SL > 0),
+  CONSTRAINT CK_ChiTietHoaDon_SL CHECK (SL = 1),
   CONSTRAINT CK_ChiTietHoaDon_DonGiaVe CHECK (DonGiaVe >= 0)
 ) ENGINE=InnoDB;

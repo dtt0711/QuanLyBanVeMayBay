@@ -1,4 +1,4 @@
-namespace BanVeMayBay.GUI
+namespace QuanLyBanVeMayBay.GUI
 {
     partial class FrmHanhKhach
     {
@@ -13,6 +13,7 @@ namespace BanVeMayBay.GUI
 
         private void InitializeComponent()
         {
+            thanhTim = new ThanhTimKiem();
             lvDSHK = new ListView();
             colMa = new ColumnHeader();
             colHoTen = new ColumnHeader();
@@ -68,7 +69,7 @@ namespace BanVeMayBay.GUI
             colGioiTinh.Width = 120;
             colMaKH.Text = "Mã KH";
             colMaKH.Width = 120;
-            colLoai.Text = "Loại KH";
+            colLoai.Text = "Loại HK";
             colLoai.Width = 120;
             pnl.Controls.Add(lblMaHK);
             pnl.Controls.Add(txtMaHK);
@@ -148,7 +149,7 @@ namespace BanVeMayBay.GUI
             lblLoaiKH.AutoSize = true;
             lblLoaiKH.Location = new Point(20, 126);
             lblLoaiKH.Name = "lblLoaiKH";
-            lblLoaiKH.Text = "Loại KH:";
+            lblLoaiKH.Text = "Loại HK:";
             txtLoaiKH.Location = new Point(120, 123);
             txtLoaiKH.Name = "txtLoaiKH";
             txtLoaiKH.Size = new Size(260, 23);
@@ -188,10 +189,15 @@ namespace BanVeMayBay.GUI
             btnDocDSHK.Text = "Đọc DS";
             btnDocDSHK.UseVisualStyleBackColor = true;
             btnDocDSHK.Click += btnDocDSHK_Click;
+            thanhTim.Name = "thanhTim";
+            thanhTim.Tim += thanhTim_Tim;
+            thanhTim.TimNangCao += thanhTim_TimNangCao;
+            thanhTim.TatCa += thanhTim_TatCa;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(960, 620);
             Controls.Add(lvDSHK);
+            Controls.Add(thanhTim);
             Controls.Add(pnl);
             Name = "FrmHanhKhach";
             StartPosition = FormStartPosition.CenterScreen;
@@ -231,5 +237,6 @@ namespace BanVeMayBay.GUI
         private Button btnXoa;
         private Button btnLamMoi;
         private Button btnDocDSHK;
+        private ThanhTimKiem thanhTim;
     }
 }

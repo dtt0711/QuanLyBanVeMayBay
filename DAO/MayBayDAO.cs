@@ -1,38 +1,37 @@
 using MySql.Data.MySqlClient;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.DAO;
+namespace QuanLyBanVeMayBay.DAO;
 
 public class MayBayDAO
 {
+    MySqlConnection connection = MyConnection.GetConnection();
+
+    public MayBayDAO()
+    {
+        MyConnection.Mo(connection);
+    }
+
     public List<MayBayDTO> DocDSMB()
     {
         List<MayBayDTO> dsmb = new List<MayBayDTO>();
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string query = "SELECT MaMayBay,MaHHK,LoaiMayBay,SoGhe FROM MayBay";
+            string query = "SELECT MaMayBay,MaHHK FROM MayBay";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
                 string ma = reader.GetString(0);
                 string maHHK = reader.GetString("MaHHK");
-                string loaiMayBay = reader.IsDBNull(reader.GetOrdinal("LoaiMayBay")) ? "" : reader.GetString("LoaiMayBay");
-                int soGhe = reader.GetInt32("SoGhe");
-                MayBayDTO mb = new MayBayDTO(ma, maHHK, loaiMayBay, soGhe);
+                MayBayDTO mb = new MayBayDTO(ma, maHHK, "", 0);
                 dsmb.Add(mb);//add to arraylist dsmb
             }
             reader.Close();
         }
         catch
         {
-            throw new Exception("Lỗi đọc thông tin máy bay!");
-        }
-        finally
-        {
-            connection.Close();
+            MessageBox.Show("Lỗi đọc thông tin máy bay!");
         }
         return dsmb;
     }
@@ -40,100 +39,60 @@ public class MayBayDAO
     public List<MayBayDTO> DocTheoHHK(string maCha)
     {
         List<MayBayDTO> dsmb = new List<MayBayDTO>();
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string query = "SELECT MaMayBay,MaHHK,LoaiMayBay,SoGhe FROM MayBay WHERE MaHHK='" + maCha + "'";
+            string query = "SELECT MaMayBay,MaHHK FROM MayBay WHERE MaHHK='" + maCha + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
                 string ma = reader.GetString(0);
                 string maHHK = reader.GetString("MaHHK");
-                string loaiMayBay = reader.IsDBNull(reader.GetOrdinal("LoaiMayBay")) ? "" : reader.GetString("LoaiMayBay");
-                int soGhe = reader.GetInt32("SoGhe");
-                MayBayDTO mb = new MayBayDTO(ma, maHHK, loaiMayBay, soGhe);
+                MayBayDTO mb = new MayBayDTO(ma, maHHK, "", 0);
                 dsmb.Add(mb);//add to arraylist dsmb
             }
             reader.Close();
         }
         catch
         {
-            throw new Exception("Lỗi đọc máy bay theo mã liên quan!");
-        }
-        finally
-        {
-            connection.Close();
+            MessageBox.Show("Lỗi đọc máy bay theo hãng hàng không!");
         }
         return dsmb;
     }
 
-    public void Them(MayBayDTO mb)
+    public bool Them(MayBayDTO mb)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = mb.MaMayBay;
-            string maHHK = mb.MaHHK;
-            string loaiMayBay = mb.LoaiMayBay;
-            int soGhe = mb.SoGhe;
-            string query = "INSERT INTO MayBay(MaMayBay,MaHHK,LoaiMayBay,SoGhe) VALUES ('" + ma + "','" + maHHK + "','" + loaiMayBay + "'," + soGhe + ")";
+            string query = "INSERT INTO MayBay VALUES ('" + mb.MaMayBay + "','" + mb.MaHHK + "')";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi ghi thông tin máy bay!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi ghi thông tin máy bay!"); return false; }
     }
 
-    public void Sua(MayBayDTO mb)
+    public bool Sua(MayBayDTO mb)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = mb.MaMayBay;
-            string maHHK = mb.MaHHK;
-            string loaiMayBay = mb.LoaiMayBay;
-            int soGhe = mb.SoGhe;
-            string query = "UPDATE MayBay SET MaHHK='" + maHHK + "', LoaiMayBay='" + loaiMayBay + "', SoGhe=" + soGhe + " WHERE MaMayBay='" + ma + "'";
+            string query = "UPDATE MayBay SET MaHHK='" + mb.MaHHK + "' WHERE MaMayBay='" + mb.MaMayBay + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi sửa thông tin máy bay!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi cập nhật máy bay!"); return false; }
     }
 
-    public void Xoa(string ma)
+    public bool Xoa(string ma)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "DELETE FROM MayBay WHERE MaMayBay='" + ma + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi xóa thông tin máy bay!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi xóa máy bay!"); return false; }
     }
 }

@@ -1,4 +1,4 @@
-namespace BanVeMayBay.GUI
+namespace QuanLyBanVeMayBay.GUI
 {
     partial class FrmCTHD
     {
@@ -26,6 +26,7 @@ namespace BanVeMayBay.GUI
             txtSoLuong = new TextBox();
             btnThem = new Button();
             btnXoa = new Button();
+            btnThemTatCa = new Button();
             lblTong = new Label();
             pnl.SuspendLayout();
             SuspendLayout();
@@ -43,11 +44,11 @@ namespace BanVeMayBay.GUI
             lvDSCTHD.View = View.Details;
             colMaHD.Text = "Mã HĐ";
             colMaHD.Width = 110;
-            colMaCB.Text = "Mã CB";
+            colMaCB.Text = "Mã vé";
             colMaCB.Width = 110;
-            colSoLuong.Text = "Số lượng";
+            colSoLuong.Text = "SL";
             colSoLuong.Width = 90;
-            colDonGia.Text = "Đơn giá";
+            colDonGia.Text = "Đơn giá vé";
             colDonGia.Width = 140;
             colThanhTien.Text = "Thành tiền";
             colThanhTien.Width = 160;
@@ -66,7 +67,7 @@ namespace BanVeMayBay.GUI
             lblChuyenBay.AutoSize = true;
             lblChuyenBay.Location = new Point(20, 18);
             lblChuyenBay.Name = "lblChuyenBay";
-            lblChuyenBay.Text = "Chuyến bay:";
+            lblChuyenBay.Text = "Vé:";
             cboMaCB.DropDownStyle = ComboBoxStyle.DropDownList;
             cboMaCB.FormattingEnabled = true;
             cboMaCB.Location = new Point(110, 15);
@@ -76,7 +77,7 @@ namespace BanVeMayBay.GUI
             lblSoLuong.AutoSize = true;
             lblSoLuong.Location = new Point(510, 18);
             lblSoLuong.Name = "lblSoLuong";
-            lblSoLuong.Text = "Số lượng:";
+            lblSoLuong.Text = "SL:";
             txtSoLuong.Location = new Point(580, 15);
             txtSoLuong.Name = "txtSoLuong";
             txtSoLuong.Size = new Size(80, 23);
@@ -97,9 +98,15 @@ namespace BanVeMayBay.GUI
             btnXoa.Click += btnXoa_Click;
             lblTong.AutoSize = true;
             lblTong.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblTong.Location = new Point(260, 62);
+            lblTong.Location = new Point(390, 62);
             lblTong.Name = "lblTong";
             lblTong.Text = "Tổng tiền:";
+            btnThemTatCa.Location = new Point(220, 55);
+            btnThemTatCa.Name = "btnThemTatCa";
+            btnThemTatCa.Size = new Size(150, 30);
+            btnThemTatCa.Text = "Thêm tất cả vé";
+            btnThemTatCa.Click += btnThemTatCa_Click;
+            pnl.Controls.Add(btnThemTatCa);
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(760, 480);
@@ -127,6 +134,7 @@ namespace BanVeMayBay.GUI
         private TextBox txtSoLuong;
         private Button btnThem;
         private Button btnXoa;
+        private Button btnThemTatCa;
         private Label lblTong;
     }
 }

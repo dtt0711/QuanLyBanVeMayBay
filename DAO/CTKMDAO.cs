@@ -1,20 +1,25 @@
 using MySql.Data.MySqlClient;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.DAO;
+namespace QuanLyBanVeMayBay.DAO;
 
 public class CTKMDAO
 {
+    MySqlConnection connection = MyConnection.GetConnection();
+
+    public CTKMDAO()
+    {
+        MyConnection.Mo(connection);
+    }
+
     public List<CTKMDTO> DocDSCTKM()
     {
         List<CTKMDTO> dsctkm = new List<CTKMDTO>();
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "SELECT MaCTKM,TenCTKM,NgayBatDau,NgayKetThuc FROM CTKM";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
                 string ma = reader.GetString(0);
@@ -28,80 +33,50 @@ public class CTKMDAO
         }
         catch
         {
-            throw new Exception("Lỗi đọc thông tin chương trình khuyến mãi!");
-        }
-        finally
-        {
-            connection.Close();
+            MessageBox.Show("Lỗi đọc thông tin chương trình khuyến mãi!");
         }
         return dsctkm;
     }
 
-    public void Them(CTKMDTO ctkm)
+    public bool Them(CTKMDTO ctkm)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = ctkm.MaCTKM;
-            string tenCTKM = ctkm.TenCTKM;
-            string ngayBatDau = ctkm.NgayBatDau.ToString("yyyy-MM-dd");
-            string ngayKetThuc = ctkm.NgayKetThuc.ToString("yyyy-MM-dd");
-            string query = "INSERT INTO CTKM(MaCTKM,TenCTKM,NgayBatDau,NgayKetThuc) VALUES ('" + ma + "','" + tenCTKM + "','" + ngayBatDau + "','" + ngayKetThuc + "')";
+            string ngayBatDau = ctkm.NgayBatDau.ToString("yyyy-MM-dd HH:mm:ss");
+            string ngayKetThuc = ctkm.NgayKetThuc.ToString("yyyy-MM-dd HH:mm:ss");
+            string query = "INSERT INTO CTKM VALUES ('" + ctkm.MaCTKM
+                + "','" + ctkm.TenCTKM + "','" + ngayBatDau + "','" + ngayKetThuc + "')";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi ghi thông tin chương trình khuyến mãi!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi ghi thông tin chương trình khuyến mãi!"); return false; }
     }
 
-    public void Sua(CTKMDTO ctkm)
+    public bool Sua(CTKMDTO ctkm)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = ctkm.MaCTKM;
-            string tenCTKM = ctkm.TenCTKM;
-            string ngayBatDau = ctkm.NgayBatDau.ToString("yyyy-MM-dd");
-            string ngayKetThuc = ctkm.NgayKetThuc.ToString("yyyy-MM-dd");
-            string query = "UPDATE CTKM SET TenCTKM='" + tenCTKM + "', NgayBatDau='" + ngayBatDau + "', NgayKetThuc='" + ngayKetThuc + "' WHERE MaCTKM='" + ma + "'";
+            string ngayBatDau = ctkm.NgayBatDau.ToString("yyyy-MM-dd HH:mm:ss");
+            string ngayKetThuc = ctkm.NgayKetThuc.ToString("yyyy-MM-dd HH:mm:ss");
+            string query = "UPDATE CTKM SET TenCTKM='" + ctkm.TenCTKM + "',NgayBatDau='" + ngayBatDau
+                + "',NgayKetThuc='" + ngayKetThuc + "' WHERE MaCTKM='" + ctkm.MaCTKM + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi sửa thông tin chương trình khuyến mãi!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi cập nhật chương trình khuyến mãi!"); return false; }
     }
 
-    public void Xoa(string ma)
+    public bool Xoa(string ma)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "DELETE FROM CTKM WHERE MaCTKM='" + ma + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi xóa thông tin chương trình khuyến mãi!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi xóa chương trình khuyến mãi!"); return false; }
     }
 }

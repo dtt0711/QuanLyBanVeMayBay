@@ -1,7 +1,7 @@
-using BanVeMayBay.BUS;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.BUS;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.GUI;
+namespace QuanLyBanVeMayBay.GUI;
 
 public partial class FrmCTHD : Form
 {
@@ -12,9 +12,13 @@ public partial class FrmCTHD : Form
         InitializeComponent();
         cboMaCB.Format += (s, e) =>
         {
-            if (e.ListItem is ChuyenBayDTO p)
-                e.Value = p.MaCB + " - " + p.TuyenBay + " (" + p.SoGheTrong + " ghế trống)";
+            if (e.ListItem is VeDTO p)
+                e.Value = p.MaChuyenBay == "" ? p.MaVe : p.MaVe + " - " + p.MaChuyenBay;
         };
+        GiaoDien.ThemNutChon(cboMaCB, "Chọn vé");
+        // Một vé là một ghế của một hành khách nên số lượng luôn là 1
+        txtSoLuong.Text = "1";
+        GiaoDien.KhoaO(txtSoLuong);
     }
 
     public FrmCTHD(string maHD) : this()
@@ -32,70 +36,76 @@ public partial class FrmCTHD : Form
         btnDocDSCTHD_Click(sender, e);
     }
 
+    // Chỉ cho chọn vé của phiếu đặt này mà chưa được tính tiền
     private void NapCombo()
     {
-        cboMaCB.DataSource = new ChuyenBayBUS().DocDSCB();
-        cboMaCB.DisplayMember = "MaCB";
-        cboMaCB.ValueMember = "MaCB";
-        cboMaCB.SelectedIndex = -1;
+        List<VeDTO> ve = new List<VeDTO>();
+        ve.Add(new VeDTO { MaVe = "Chọn vé" });
+        ve.AddRange(new CTHDBUS().VeChuaLapHD(maHD));
+        cboMaCB.DataSource = ve;
+        cboMaCB.DisplayMember = "MaVe";
+        cboMaCB.ValueMember = "MaVe";
+        cboMaCB.SelectedIndex = 0;
     }
 
     private void btnDocDSCTHD_Click(object sender, EventArgs e)
     {
-        CTHDBUS bus = new CTHDBUS();
-        List<CTHDDTO> ds = bus.DocTheoHD(maHD);
+        List<CTHDDTO> ds = new CTHDBUS().DocTheoHD(maHD);
         decimal tong = 0;
         lvDSCTHD.Items.Clear();
         foreach (CTHDDTO cthd in ds)
         {
             int n = lvDSCTHD.Items.Count;
             lvDSCTHD.Items.Add(cthd.MaHD);
-            lvDSCTHD.Items[n].SubItems.Add(cthd.MaCB);
-            lvDSCTHD.Items[n].SubItems.Add(cthd.SoLuong.ToString());
-            lvDSCTHD.Items[n].SubItems.Add(cthd.DonGia.ToString("N0"));
+            lvDSCTHD.Items[n].SubItems.Add(cthd.MaVe);
+            lvDSCTHD.Items[n].SubItems.Add(cthd.SL.ToString());
+            lvDSCTHD.Items[n].SubItems.Add(cthd.DonGiaVe.ToString("N0"));
             lvDSCTHD.Items[n].SubItems.Add(cthd.ThanhTien.ToString("N0"));
             tong += cthd.ThanhTien;
         }
-        lblTong.Text = "Tổng tiền: " + tong.ToString("N0");
+        lblTong.Text = "Cộng thành tiền: " + tong.ToString("N0");
+        NapCombo();
     }
 
     private void btnThem_Click(object sender, EventArgs e)
     {
-        ChuyenBayDTO cb = (ChuyenBayDTO)cboMaCB.SelectedItem;
-        int soLuong = int.Parse(txtSoLuong.Text);
-        CTHDDTO cthd = new CTHDDTO(maHD, cb.MaCB, soLuong, cb.GiaVe, soLuong * cb.GiaVe);
+        VeDTO ve = (VeDTO)cboMaCB.SelectedItem;
+        if (ve == null || ve.MaChuyenBay == "")
+        {
+            MessageBox.Show("Chọn vé.");
+            return;
+        }
         CTHDBUS bus = new CTHDBUS();
-        bus.Them(maHD, cb.MaCB, soLuong);
-        int n = lvDSCTHD.Items.Count;
-        lvDSCTHD.Items.Add(cthd.MaHD);
-        lvDSCTHD.Items[n].SubItems.Add(cthd.MaCB);
-        lvDSCTHD.Items[n].SubItems.Add(cthd.SoLuong.ToString());
-        lvDSCTHD.Items[n].SubItems.Add(cthd.DonGia.ToString("N0"));
-        lvDSCTHD.Items[n].SubItems.Add(cthd.ThanhTien.ToString("N0"));
-        decimal tong = 0;
-        foreach (CTHDDTO c in bus.DocTheoHD(maHD))
-            tong += c.ThanhTien;
-        lblTong.Text = "Tổng tiền: " + tong.ToString("N0");
+        string loi = bus.KiemTra(maHD, ve.MaVe);
+        if (loi != "")
+        {
+            MessageBox.Show(loi);
+            return;
+        }
+        if (!bus.Them(maHD, ve.MaVe))
+            return;
+        btnDocDSCTHD_Click(sender, e);
+    }
+
+    private void btnThemTatCa_Click(object sender, EventArgs e)
+    {
+        CTHDBUS bus = new CTHDBUS();
+        List<VeDTO> ds = bus.VeChuaLapHD(maHD);
+        if (ds.Count == 0)
+        {
+            MessageBox.Show("Các vé của phiếu đặt đã có trong hóa đơn.");
+            return;
+        }
+        foreach (VeDTO v in ds)
+            bus.Them(maHD, v.MaVe);
+        btnDocDSCTHD_Click(sender, e);
     }
 
     private void btnXoa_Click(object sender, EventArgs e)
     {
-        string maCB = lvDSCTHD.SelectedItems[0].SubItems[1].Text;
-        CTHDBUS bus = new CTHDBUS();
-        bus.Xoa(maHD, maCB);
-        List<CTHDDTO> ds = bus.DocTheoHD(maHD);
-        decimal tong = 0;
-        lvDSCTHD.Items.Clear();
-        foreach (CTHDDTO cthd in ds)
-        {
-            int n = lvDSCTHD.Items.Count;
-            lvDSCTHD.Items.Add(cthd.MaHD);
-            lvDSCTHD.Items[n].SubItems.Add(cthd.MaCB);
-            lvDSCTHD.Items[n].SubItems.Add(cthd.SoLuong.ToString());
-            lvDSCTHD.Items[n].SubItems.Add(cthd.DonGia.ToString("N0"));
-            lvDSCTHD.Items[n].SubItems.Add(cthd.ThanhTien.ToString("N0"));
-            tong += cthd.ThanhTien;
-        }
-        lblTong.Text = "Tổng tiền: " + tong.ToString("N0");
+        if (lvDSCTHD.SelectedItems.Count == 0) return;
+        string maVe = lvDSCTHD.SelectedItems[0].SubItems[1].Text;
+        new CTHDBUS().Xoa(maHD, maVe);
+        btnDocDSCTHD_Click(sender, e);
     }
 }

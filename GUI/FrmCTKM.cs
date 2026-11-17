@@ -1,7 +1,7 @@
-using BanVeMayBay.BUS;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.BUS;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.GUI;
+namespace QuanLyBanVeMayBay.GUI;
 
 public partial class FrmCTKM : Form
 {
@@ -19,27 +19,8 @@ public partial class FrmCTKM : Form
         btnDocDSCTKM_Click(sender, e);
     }
 
-    private void btnDocDSCTKM_Click(object sender, EventArgs e)
+    private void NapDong(CTKMDTO ctkm)
     {
-        CTKMBUS bus = new CTKMBUS();
-        ds = bus.DocDSCTKM();
-        lvDSCTKM.Items.Clear();
-        foreach (CTKMDTO ctkm in ds)
-        {
-            int n = lvDSCTKM.Items.Count;
-            lvDSCTKM.Items.Add(ctkm.MaCTKM);
-            lvDSCTKM.Items[n].SubItems.Add(ctkm.TenCTKM);
-            lvDSCTKM.Items[n].SubItems.Add(ctkm.NgayBatDau.ToString("dd/MM/yyyy"));
-            lvDSCTKM.Items[n].SubItems.Add(ctkm.NgayKetThuc.ToString("dd/MM/yyyy"));
-        }
-    }
-
-    private void btnThem_Click(object sender, EventArgs e)
-    {
-        CTKMDTO ctkm = new CTKMDTO(txtMaCTKM.Text, txtTenCTKM.Text, dtpNgayBatDau.Value, dtpNgayKetThuc.Value);
-        CTKMBUS bus = new CTKMBUS();
-        bus.Them(ctkm);
-        ds.Add(ctkm);
         int n = lvDSCTKM.Items.Count;
         lvDSCTKM.Items.Add(ctkm.MaCTKM);
         lvDSCTKM.Items[n].SubItems.Add(ctkm.TenCTKM);
@@ -47,37 +28,64 @@ public partial class FrmCTKM : Form
         lvDSCTKM.Items[n].SubItems.Add(ctkm.NgayKetThuc.ToString("dd/MM/yyyy"));
     }
 
+    private void HienThi(List<CTKMDTO> dsMoi)
+    {
+        ds = dsMoi;
+        lvDSCTKM.Items.Clear();
+        foreach (CTKMDTO ctkm in ds)
+            NapDong(ctkm);
+        thanhTim.HienSoDong(ds.Count);
+    }
+
+    private void btnDocDSCTKM_Click(object sender, EventArgs e)
+    {
+        HienThi(new CTKMBUS().DocDSCTKM());
+    }
+
+    private void btnThem_Click(object sender, EventArgs e)
+    {
+        CTKMDTO ctkm = new CTKMDTO(txtMaCTKM.Text, txtTenCTKM.Text, dtpNgayBatDau.Value, dtpNgayKetThuc.Value);
+        CTKMBUS bus = new CTKMBUS();
+        if (txtMaCTKM.Text.Trim() == "")
+        {
+            MessageBox.Show("Nhập mã trước khi thêm.");
+            return;
+        }
+        if (bus.TrungMa(txtMaCTKM.Text))
+        {
+            MessageBox.Show("Mã " + txtMaCTKM.Text + " đã tồn tại.");
+            return;
+        }
+        string loi = bus.KiemTra(ctkm);
+        if (loi != "")
+        {
+            MessageBox.Show(loi);
+            return;
+        }
+        if (!bus.Them(ctkm))
+            return;
+        btnDocDSCTKM_Click(sender, e);
+    }
+
     private void btnSua_Click(object sender, EventArgs e)
     {
         CTKMDTO ctkm = new CTKMDTO(txtMaCTKM.Text, txtTenCTKM.Text, dtpNgayBatDau.Value, dtpNgayKetThuc.Value);
         CTKMBUS bus = new CTKMBUS();
-        bus.Sua(ctkm);
-        ds = bus.DocDSCTKM();
-        lvDSCTKM.Items.Clear();
-        foreach (CTKMDTO c in ds)
+        string loi = bus.KiemTra(ctkm);
+        if (loi != "")
         {
-            int n = lvDSCTKM.Items.Count;
-            lvDSCTKM.Items.Add(c.MaCTKM);
-            lvDSCTKM.Items[n].SubItems.Add(c.TenCTKM);
-            lvDSCTKM.Items[n].SubItems.Add(c.NgayBatDau.ToString("dd/MM/yyyy"));
-            lvDSCTKM.Items[n].SubItems.Add(c.NgayKetThuc.ToString("dd/MM/yyyy"));
+            MessageBox.Show(loi);
+            return;
         }
+        bus.Sua(ctkm);
+        HienThi(bus.DocDSCTKM());
     }
 
     private void btnXoa_Click(object sender, EventArgs e)
     {
         CTKMBUS bus = new CTKMBUS();
         bus.Xoa(txtMaCTKM.Text);
-        ds = bus.DocDSCTKM();
-        lvDSCTKM.Items.Clear();
-        foreach (CTKMDTO c in ds)
-        {
-            int n = lvDSCTKM.Items.Count;
-            lvDSCTKM.Items.Add(c.MaCTKM);
-            lvDSCTKM.Items[n].SubItems.Add(c.TenCTKM);
-            lvDSCTKM.Items[n].SubItems.Add(c.NgayBatDau.ToString("dd/MM/yyyy"));
-            lvDSCTKM.Items[n].SubItems.Add(c.NgayKetThuc.ToString("dd/MM/yyyy"));
-        }
+        HienThi(bus.DocDSCTKM());
     }
 
     private void btnLamMoi_Click(object sender, EventArgs e)
@@ -94,6 +102,22 @@ public partial class FrmCTKM : Form
     {
         VoucherBUS bus = new VoucherBUS();
         new FrmXemDS("Voucher của CTKM " + txtMaCTKM.Text, bus.DocTheoCTKM(txtMaCTKM.Text)).ShowDialog();
+    }
+
+    private void thanhTim_Tim(object sender, EventArgs e)
+    {
+        HienThi(new CTKMBUS().TimKiem(thanhTim.TuKhoa));
+    }
+
+    private void thanhTim_TimNangCao(object sender, EventArgs e)
+    {
+        if (new FrmTimNangCao(typeof(CTKMDTO), Text).ShowDialog(this) == DialogResult.OK)
+            HienThi(new CTKMBUS().TimNangCao(FrmTimNangCao.DieuKien));
+    }
+
+    private void thanhTim_TatCa(object sender, EventArgs e)
+    {
+        btnDocDSCTKM_Click(sender, e);
     }
 
     private void lvDSCTKM_SelectedIndexChanged(object sender, EventArgs e)

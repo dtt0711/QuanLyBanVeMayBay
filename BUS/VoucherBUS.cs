@@ -1,12 +1,11 @@
-using BanVeMayBay.DAO;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DAO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.BUS;
+namespace QuanLyBanVeMayBay.BUS;
 
 public class VoucherBUS
 {
-    private static List<VoucherDTO>? dsvc;
-    private CTKMDAO ctkmDao = new CTKMDAO();
+    private static List<VoucherDTO> dsvc;
 
     public List<VoucherDTO> DocDSVC()
     {
@@ -19,7 +18,6 @@ public class VoucherBUS
         return dsvc;
     }
 
-    // xóa danh sách đã lưu để lần đọc sau lấy lại dữ liệu mới từ CSDL
     public static void LamMoiDS()
     {
         dsvc = null;
@@ -31,44 +29,78 @@ public class VoucherBUS
         return dao.DocTheoCTKM(maCha);
     }
 
-    private void KiemTra(VoucherDTO vc)
+    public bool Them(VoucherDTO vc)
     {
-        if (string.IsNullOrWhiteSpace(vc.MaVoucher))
-            throw new Exception("Mã voucher không được để trống!");
-        if (string.IsNullOrWhiteSpace(vc.MaCTKM))
-            throw new Exception("Mã CTKM không được để trống!");
-        if (vc.GiamGia <= 0)
-            throw new Exception("Giảm giá phải lớn hơn 0!");
-        if (!ctkmDao.DocDSCTKM().Any(t => t.MaCTKM == vc.MaCTKM))
-            throw new Exception("Mã CTKM không tồn tại!");
+        DocDSVC();
+        VoucherDAO dao = new VoucherDAO();
+        if (!dao.Them(vc))
+            return false;
+        dsvc.Add(vc);
+        return true;
     }
 
-    public void Them(VoucherDTO vc)
+    public bool Sua(VoucherDTO vc)
     {
+        DocDSVC();
         VoucherDAO dao = new VoucherDAO();
-        KiemTra(vc);
-        if (dao.DocDSVC().Any(t => t.MaVoucher == vc.MaVoucher))
-            throw new Exception("Mã voucher đã tồn tại!");
-        dao.Them(vc);
-        LamMoiDS();
+        if (!dao.Sua(vc))
+            return false;
+        foreach (VoucherDTO v in dsvc)
+            if (v.MaVoucher.CompareTo(vc.MaVoucher) == 0)
+            {
+                v.MaCTKM = vc.MaCTKM;
+                v.GiamGia = vc.GiamGia;
+            }
+        return true;
     }
 
-    public void Sua(VoucherDTO vc)
+    public bool Xoa(string ma)
     {
+        DocDSVC();
         VoucherDAO dao = new VoucherDAO();
-        KiemTra(vc);
-        if (!dao.DocDSVC().Any(t => t.MaVoucher == vc.MaVoucher))
-            throw new Exception("Không tìm thấy Mã voucher cần sửa!");
-        dao.Sua(vc);
-        LamMoiDS();
+        if (!dao.Xoa(ma))
+            return false;
+        dsvc.Remove(timKiem(ma));
+        return true;
     }
 
-    public void Xoa(string ma)
+    // Kiểm tra dữ liệu trước khi ghi, giới hạn lấy từ bảng tham số
+    public string KiemTra(VoucherDTO x)
     {
-        VoucherDAO dao = new VoucherDAO();
-        if (string.IsNullOrWhiteSpace(ma))
-            throw new Exception("Chưa chọn Mã voucher cần xóa!");
-        dao.Xoa(ma);
-        LamMoiDS();
+        decimal giamToiDa = ThamSoBUS.LayGiaTri("GIAM_GIA_TOI_DA", 1000000);
+        if (x.GiamGia <= 0 || (decimal)x.GiamGia > giamToiDa)
+            return "Mức giảm phải lớn hơn 0 và không quá " + giamToiDa.ToString("N0") + " đ.";
+        return "";
+    }
+
+    // Tìm kiếm thường: giữ lại các dòng có ít nhất một field chứa từ khóa
+    public List<VoucherDTO> TimKiem(string tuKhoa)
+    {
+        List<VoucherDTO> kq = new List<VoucherDTO>();
+        foreach (VoucherDTO x in DocDSVC())
+            if (TimKiemBUS.Chua(x.MaVoucher, tuKhoa)
+                || TimKiemBUS.Chua(x.MaCTKM, tuKhoa))
+                kq.Add(x);
+        return kq;
+    }
+
+    // Tìm kiếm nâng cao: lọc theo các điều kiện and, or, not, >, ≥, <, ≤, <>
+    public List<VoucherDTO> TimNangCao(List<DieuKienDTO> dsDK)
+    {
+        return TimKiemBUS.Loc(DocDSVC(), dsDK);
+    }
+
+    public bool TrungMa(string ma)
+    {
+        DocDSVC();
+        return timKiem(ma) != null;
+    }
+
+    public VoucherDTO timKiem(string ma)
+    {
+        foreach (VoucherDTO v in DocDSVC())
+            if (v.MaVoucher.CompareTo(ma) == 0)
+                return v;
+        return null;
     }
 }

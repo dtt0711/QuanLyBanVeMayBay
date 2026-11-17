@@ -1,13 +1,11 @@
-using BanVeMayBay.DAO;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DAO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.BUS;
+namespace QuanLyBanVeMayBay.BUS;
 
 public class KhachHangBUS
 {
-    private static List<KhachHangDTO>? dskh;
-    private HanhKhachDAO hanhKhachDao = new HanhKhachDAO();
-    private HoaDonDAO hoaDonDao = new HoaDonDAO();
+    private static List<KhachHangDTO> dskh;
 
     public List<KhachHangDTO> DocDSKH()
     {
@@ -20,62 +18,108 @@ public class KhachHangBUS
         return dskh;
     }
 
-    // xóa danh sách đã lưu để lần đọc sau lấy lại dữ liệu mới từ CSDL
     public static void LamMoiDS()
     {
         dskh = null;
     }
 
-    private void KiemTra(KhachHangDTO kh)
+    public bool Them(KhachHangDTO kh)
     {
-        if (string.IsNullOrWhiteSpace(kh.MaKH))
-            throw new Exception("Mã KH không được để trống!");
-        if (string.IsNullOrWhiteSpace(kh.HoTen))
-            throw new Exception("Họ tên không được để trống!");
-        if (string.IsNullOrWhiteSpace(kh.CCCD))
-            throw new Exception("CCCD không được để trống!");
-        if (string.IsNullOrWhiteSpace(kh.SDT))
-            throw new Exception("SĐT không được để trống!");
-        if (string.IsNullOrWhiteSpace(kh.Email))
-            throw new Exception("Email không được để trống!");
-        if (string.IsNullOrWhiteSpace(kh.TaiKhoan))
-            throw new Exception("Tài khoản không được để trống!");
-        if (string.IsNullOrWhiteSpace(kh.MatKhau))
-            throw new Exception("Mật khẩu không được để trống!");
-        if (string.IsNullOrWhiteSpace(kh.DiaChi))
-            throw new Exception("Địa chỉ không được để trống!");
+        DocDSKH();
+        KhachHangDAO dao = new KhachHangDAO();
+        if (!dao.Them(kh))
+            return false;
+        dskh.Add(kh);
+        return true;
     }
 
-    public void Them(KhachHangDTO kh)
+    public bool Sua(KhachHangDTO kh)
     {
+        DocDSKH();
         KhachHangDAO dao = new KhachHangDAO();
-        KiemTra(kh);
-        if (dao.DocDSKH().Any(t => t.MaKH == kh.MaKH))
-            throw new Exception("Mã KH đã tồn tại!");
-        dao.Them(kh);
-        LamMoiDS();
+        if (!dao.Sua(kh))
+            return false;
+        foreach (KhachHangDTO k in dskh)
+            if (k.MaKH.CompareTo(kh.MaKH) == 0)
+            {
+                k.HoTen = kh.HoTen;
+                k.CCCD = kh.CCCD;
+                k.SDT = kh.SDT;
+                k.Email = kh.Email;
+                k.TaiKhoan = kh.TaiKhoan;
+                k.MatKhau = kh.MatKhau;
+                k.DiaChi = kh.DiaChi;
+            }
+        return true;
     }
 
-    public void Sua(KhachHangDTO kh)
+    public bool Xoa(string ma)
     {
+        DocDSKH();
         KhachHangDAO dao = new KhachHangDAO();
-        KiemTra(kh);
-        if (!dao.DocDSKH().Any(t => t.MaKH == kh.MaKH))
-            throw new Exception("Không tìm thấy Mã KH cần sửa!");
-        dao.Sua(kh);
-        LamMoiDS();
+        if (!dao.Xoa(ma))
+            return false;
+        dskh.Remove(timKiem(ma));
+        return true;
     }
 
-    public void Xoa(string ma)
+    // Kiểm tra dữ liệu trước khi ghi: field bắt buộc, CCCD và tài khoản không trùng với khách khác
+    public string KiemTra(KhachHangDTO x)
     {
-        KhachHangDAO dao = new KhachHangDAO();
-        if (string.IsNullOrWhiteSpace(ma))
-            throw new Exception("Chưa chọn Mã KH cần xóa!");
-        if (hanhKhachDao.DocTheoKH(ma).Count > 0)
-            throw new Exception("Khách hàng đang có hành khách, hãy xóa hành khách trước!");
-        if (hoaDonDao.DocTheoKH(ma).Count > 0)
-            throw new Exception("Khách hàng đã có hóa đơn, không thể xóa!");
-        dao.Xoa(ma);
-        LamMoiDS();
+        int doDaiMK = (int)ThamSoBUS.LayGiaTri("MAT_KHAU_TOI_THIEU", 6);
+        if (x.HoTen.Trim() == "")
+            return "Nhập họ tên khách hàng.";
+        if (x.CCCD.Length != 12 || !x.CCCD.All(char.IsDigit))
+            return "CCCD phải gồm đúng 12 chữ số.";
+        if (x.TaiKhoan.Trim() == "")
+            return "Nhập tài khoản.";
+        if (x.MatKhau.Length < doDaiMK)
+            return "Mật khẩu phải có ít nhất " + doDaiMK + " ký tự.";
+        foreach (KhachHangDTO k in DocDSKH())
+        {
+            if (k.MaKH == x.MaKH)
+                continue;
+            if (k.CCCD == x.CCCD)
+                return "CCCD " + x.CCCD + " đã thuộc khách hàng " + k.MaKH + ".";
+            if (k.TaiKhoan.ToLower() == x.TaiKhoan.Trim().ToLower())
+                return "Tài khoản " + x.TaiKhoan + " đã có người dùng.";
+        }
+        return "";
+    }
+
+    // Tìm kiếm thường: giữ lại các dòng có ít nhất một field chứa từ khóa
+    public List<KhachHangDTO> TimKiem(string tuKhoa)
+    {
+        List<KhachHangDTO> kq = new List<KhachHangDTO>();
+        foreach (KhachHangDTO x in DocDSKH())
+            if (TimKiemBUS.Chua(x.MaKH, tuKhoa)
+                || TimKiemBUS.Chua(x.HoTen, tuKhoa)
+                || TimKiemBUS.Chua(x.CCCD, tuKhoa)
+                || TimKiemBUS.Chua(x.SDT, tuKhoa)
+                || TimKiemBUS.Chua(x.Email, tuKhoa)
+                || TimKiemBUS.Chua(x.TaiKhoan, tuKhoa)
+                || TimKiemBUS.Chua(x.DiaChi, tuKhoa))
+                kq.Add(x);
+        return kq;
+    }
+
+    // Tìm kiếm nâng cao: lọc theo các điều kiện and, or, not, >, ≥, <, ≤, <>
+    public List<KhachHangDTO> TimNangCao(List<DieuKienDTO> dsDK)
+    {
+        return TimKiemBUS.Loc(DocDSKH(), dsDK);
+    }
+
+    public bool TrungMa(string ma)
+    {
+        DocDSKH();
+        return timKiem(ma) != null;
+    }
+
+    public KhachHangDTO timKiem(string ma)
+    {
+        foreach (KhachHangDTO k in DocDSKH())
+            if (k.MaKH.CompareTo(ma) == 0)
+                return k;
+        return null;
     }
 }

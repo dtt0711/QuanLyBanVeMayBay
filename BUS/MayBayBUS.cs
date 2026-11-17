@@ -1,13 +1,11 @@
-using BanVeMayBay.DAO;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DAO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.BUS;
+namespace QuanLyBanVeMayBay.BUS;
 
 public class MayBayBUS
 {
-    private static List<MayBayDTO>? dsmb;
-    private HangHangKhongDAO hangHangKhongDao = new HangHangKhongDAO();
-    private ChuyenBayDAO chuyenBayDao = new ChuyenBayDAO();
+    private static List<MayBayDTO> dsmb;
 
     public List<MayBayDTO> DocDSMB()
     {
@@ -20,7 +18,6 @@ public class MayBayBUS
         return dsmb;
     }
 
-    // xóa danh sách đã lưu để lần đọc sau lấy lại dữ liệu mới từ CSDL
     public static void LamMoiDS()
     {
         dsmb = null;
@@ -32,46 +29,71 @@ public class MayBayBUS
         return dao.DocTheoHHK(maCha);
     }
 
-    private void KiemTra(MayBayDTO mb)
+    public bool Them(MayBayDTO mb)
     {
-        if (string.IsNullOrWhiteSpace(mb.MaMayBay))
-            throw new Exception("Mã máy bay không được để trống!");
-        if (string.IsNullOrWhiteSpace(mb.MaHHK))
-            throw new Exception("Hãng HK không được để trống!");
-        if (mb.SoGhe <= 0)
-            throw new Exception("Số ghế phải lớn hơn 0!");
-        if (!hangHangKhongDao.DocDS().Any(t => t.MaHHK == mb.MaHHK))
-            throw new Exception("Hãng HK không tồn tại!");
+        DocDSMB();
+        MayBayDAO dao = new MayBayDAO();
+        if (!dao.Them(mb))
+            return false;
+        dsmb.Add(mb);
+        return true;
     }
 
-    public void Them(MayBayDTO mb)
+    public bool Sua(MayBayDTO mb)
     {
+        DocDSMB();
         MayBayDAO dao = new MayBayDAO();
-        KiemTra(mb);
-        if (dao.DocDSMB().Any(t => t.MaMayBay == mb.MaMayBay))
-            throw new Exception("Mã máy bay đã tồn tại!");
-        dao.Them(mb);
-        LamMoiDS();
+        if (!dao.Sua(mb))
+            return false;
+        foreach (MayBayDTO m in dsmb)
+            if (m.MaMayBay.CompareTo(mb.MaMayBay) == 0)
+            {
+                m.MaHHK = mb.MaHHK;
+                m.LoaiMayBay = mb.LoaiMayBay;
+                m.SoGhe = mb.SoGhe;
+            }
+        return true;
     }
 
-    public void Sua(MayBayDTO mb)
+    public bool Xoa(string ma)
     {
+        DocDSMB();
         MayBayDAO dao = new MayBayDAO();
-        KiemTra(mb);
-        if (!dao.DocDSMB().Any(t => t.MaMayBay == mb.MaMayBay))
-            throw new Exception("Không tìm thấy Mã máy bay cần sửa!");
-        dao.Sua(mb);
-        LamMoiDS();
+        if (!dao.Xoa(ma))
+            return false;
+        dsmb.Remove(timKiem(ma));
+        return true;
     }
 
-    public void Xoa(string ma)
+    // Tìm kiếm thường: giữ lại các dòng có ít nhất một field chứa từ khóa
+    public List<MayBayDTO> TimKiem(string tuKhoa)
     {
-        MayBayDAO dao = new MayBayDAO();
-        if (string.IsNullOrWhiteSpace(ma))
-            throw new Exception("Chưa chọn Mã máy bay cần xóa!");
-        if (chuyenBayDao.DocTheoMayBay(ma).Count > 0)
-            throw new Exception("Máy bay đã có chuyến bay, không thể xóa!");
-        dao.Xoa(ma);
-        LamMoiDS();
+        List<MayBayDTO> kq = new List<MayBayDTO>();
+        foreach (MayBayDTO x in DocDSMB())
+            if (TimKiemBUS.Chua(x.MaMayBay, tuKhoa)
+                || TimKiemBUS.Chua(x.MaHHK, tuKhoa)
+                || TimKiemBUS.Chua(x.LoaiMayBay, tuKhoa))
+                kq.Add(x);
+        return kq;
+    }
+
+    // Tìm kiếm nâng cao: lọc theo các điều kiện and, or, not, >, ≥, <, ≤, <>
+    public List<MayBayDTO> TimNangCao(List<DieuKienDTO> dsDK)
+    {
+        return TimKiemBUS.Loc(DocDSMB(), dsDK);
+    }
+
+    public bool TrungMa(string ma)
+    {
+        DocDSMB();
+        return timKiem(ma) != null;
+    }
+
+    public MayBayDTO timKiem(string ma)
+    {
+        foreach (MayBayDTO m in DocDSMB())
+            if (m.MaMayBay.CompareTo(ma) == 0)
+                return m;
+        return null;
     }
 }

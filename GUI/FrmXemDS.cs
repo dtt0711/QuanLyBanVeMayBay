@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Reflection;
 
-namespace BanVeMayBay.GUI;
+namespace QuanLyBanVeMayBay.GUI;
 
 public partial class FrmXemDS : Form
 {

@@ -1,4 +1,4 @@
-namespace BanVeMayBay.GUI
+namespace QuanLyBanVeMayBay.GUI
 {
     partial class FrmKhachHang
     {
@@ -13,6 +13,7 @@ namespace BanVeMayBay.GUI
 
         private void InitializeComponent()
         {
+            thanhTim = new ThanhTimKiem();
             lvDSKH = new ListView();
             colMa = new ColumnHeader();
             colHoTen = new ColumnHeader();
@@ -216,10 +217,15 @@ namespace BanVeMayBay.GUI
             btnXemHD.Text = "Xem hóa đơn";
             btnXemHD.UseVisualStyleBackColor = true;
             btnXemHD.Click += btnXemHD_Click;
+            thanhTim.Name = "thanhTim";
+            thanhTim.Tim += thanhTim_Tim;
+            thanhTim.TimNangCao += thanhTim_TimNangCao;
+            thanhTim.TatCa += thanhTim_TatCa;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(960, 620);
             Controls.Add(lvDSKH);
+            Controls.Add(thanhTim);
             Controls.Add(pnl);
             Name = "FrmKhachHang";
             StartPosition = FormStartPosition.CenterScreen;
@@ -263,5 +269,6 @@ namespace BanVeMayBay.GUI
         private Button btnDocDSKH;
         private Button btnXemCon;
         private Button btnXemHD;
+        private ThanhTimKiem thanhTim;
     }
 }

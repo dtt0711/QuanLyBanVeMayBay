@@ -1,12 +1,11 @@
-using BanVeMayBay.DAO;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DAO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.BUS;
+namespace QuanLyBanVeMayBay.BUS;
 
 public class CTKMBUS
 {
-    private static List<CTKMDTO>? dsctkm;
-    private VoucherDAO voucherDao = new VoucherDAO();
+    private static List<CTKMDTO> dsctkm;
 
     public List<CTKMDTO> DocDSCTKM()
     {
@@ -19,50 +18,85 @@ public class CTKMBUS
         return dsctkm;
     }
 
-    // xóa danh sách đã lưu để lần đọc sau lấy lại dữ liệu mới từ CSDL
     public static void LamMoiDS()
     {
         dsctkm = null;
     }
 
-    private void KiemTra(CTKMDTO ctkm)
+    public bool Them(CTKMDTO ctkm)
     {
-        if (string.IsNullOrWhiteSpace(ctkm.MaCTKM))
-            throw new Exception("Mã CTKM không được để trống!");
-        if (string.IsNullOrWhiteSpace(ctkm.TenCTKM))
-            throw new Exception("Tên CTKM không được để trống!");
-        if (ctkm.NgayKetThuc < ctkm.NgayBatDau)
-            throw new Exception("Ngày kết thúc phải sau ngày bắt đầu!");
+        DocDSCTKM();
+        CTKMDAO dao = new CTKMDAO();
+        if (!dao.Them(ctkm))
+            return false;
+        dsctkm.Add(ctkm);
+        return true;
     }
 
-    public void Them(CTKMDTO ctkm)
+    public bool Sua(CTKMDTO ctkm)
     {
+        DocDSCTKM();
         CTKMDAO dao = new CTKMDAO();
-        KiemTra(ctkm);
-        if (dao.DocDSCTKM().Any(t => t.MaCTKM == ctkm.MaCTKM))
-            throw new Exception("Mã CTKM đã tồn tại!");
-        dao.Them(ctkm);
-        LamMoiDS();
+        if (!dao.Sua(ctkm))
+            return false;
+        foreach (CTKMDTO c in dsctkm)
+            if (c.MaCTKM.CompareTo(ctkm.MaCTKM) == 0)
+            {
+                c.TenCTKM = ctkm.TenCTKM;
+                c.NgayBatDau = ctkm.NgayBatDau;
+                c.NgayKetThuc = ctkm.NgayKetThuc;
+            }
+        return true;
     }
 
-    public void Sua(CTKMDTO ctkm)
+    public bool Xoa(string ma)
     {
+        DocDSCTKM();
         CTKMDAO dao = new CTKMDAO();
-        KiemTra(ctkm);
-        if (!dao.DocDSCTKM().Any(t => t.MaCTKM == ctkm.MaCTKM))
-            throw new Exception("Không tìm thấy Mã CTKM cần sửa!");
-        dao.Sua(ctkm);
-        LamMoiDS();
+        if (!dao.Xoa(ma))
+            return false;
+        dsctkm.Remove(timKiem(ma));
+        return true;
     }
 
-    public void Xoa(string ma)
+    // Kiểm tra dữ liệu trước khi ghi. Trả về "" nếu hợp lệ, ngược lại trả về lỗi.
+    public string KiemTra(CTKMDTO x)
     {
-        CTKMDAO dao = new CTKMDAO();
-        if (string.IsNullOrWhiteSpace(ma))
-            throw new Exception("Chưa chọn Mã CTKM cần xóa!");
-        if (voucherDao.DocTheoCTKM(ma).Count > 0)
-            throw new Exception("CTKM đang có voucher, hãy xóa voucher trước!");
-        dao.Xoa(ma);
-        LamMoiDS();
+        if (x.TenCTKM.Trim() == "")
+            return "Nhập tên chương trình.";
+        if (x.NgayKetThuc.Date < x.NgayBatDau.Date)
+            return "Ngày kết thúc phải sau ngày bắt đầu.";
+        return "";
+    }
+
+    // Tìm kiếm thường: giữ lại các dòng có ít nhất một field chứa từ khóa
+    public List<CTKMDTO> TimKiem(string tuKhoa)
+    {
+        List<CTKMDTO> kq = new List<CTKMDTO>();
+        foreach (CTKMDTO x in DocDSCTKM())
+            if (TimKiemBUS.Chua(x.MaCTKM, tuKhoa)
+                || TimKiemBUS.Chua(x.TenCTKM, tuKhoa))
+                kq.Add(x);
+        return kq;
+    }
+
+    // Tìm kiếm nâng cao: lọc theo các điều kiện and, or, not, >, ≥, <, ≤, <>
+    public List<CTKMDTO> TimNangCao(List<DieuKienDTO> dsDK)
+    {
+        return TimKiemBUS.Loc(DocDSCTKM(), dsDK);
+    }
+
+    public bool TrungMa(string ma)
+    {
+        DocDSCTKM();
+        return timKiem(ma) != null;
+    }
+
+    public CTKMDTO timKiem(string ma)
+    {
+        foreach (CTKMDTO c in DocDSCTKM())
+            if (c.MaCTKM.CompareTo(ma) == 0)
+                return c;
+        return null;
     }
 }

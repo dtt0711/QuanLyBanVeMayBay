@@ -1,4 +1,4 @@
-namespace BanVeMayBay.GUI
+namespace QuanLyBanVeMayBay.GUI
 {
     partial class FrmXemDS
     {

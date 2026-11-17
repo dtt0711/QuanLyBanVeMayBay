@@ -1,4 +1,4 @@
-namespace BanVeMayBay.GUI
+namespace QuanLyBanVeMayBay.GUI
 {
     partial class FrmCTKM
     {
@@ -13,6 +13,7 @@ namespace BanVeMayBay.GUI
 
         private void InitializeComponent()
         {
+            thanhTim = new ThanhTimKiem();
             lvDSCTKM = new ListView();
             colMa = new ColumnHeader();
             colTen = new ColumnHeader();
@@ -151,10 +152,15 @@ namespace BanVeMayBay.GUI
             btnXemCon.Text = "Xem voucher";
             btnXemCon.UseVisualStyleBackColor = true;
             btnXemCon.Click += btnXemCon_Click;
+            thanhTim.Name = "thanhTim";
+            thanhTim.Tim += thanhTim_Tim;
+            thanhTim.TimNangCao += thanhTim_TimNangCao;
+            thanhTim.TatCa += thanhTim_TatCa;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(960, 620);
             Controls.Add(lvDSCTKM);
+            Controls.Add(thanhTim);
             Controls.Add(pnl);
             Name = "FrmCTKM";
             StartPosition = FormStartPosition.CenterScreen;
@@ -186,5 +192,6 @@ namespace BanVeMayBay.GUI
         private Button btnLamMoi;
         private Button btnDocDSCTKM;
         private Button btnXemCon;
+        private ThanhTimKiem thanhTim;
     }
 }

@@ -1,7 +1,7 @@
-using BanVeMayBay.BUS;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.BUS;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.GUI;
+namespace QuanLyBanVeMayBay.GUI;
 
 public partial class FrmKhachHang : Form
 {
@@ -19,30 +19,8 @@ public partial class FrmKhachHang : Form
         btnDocDSKH_Click(sender, e);
     }
 
-    private void btnDocDSKH_Click(object sender, EventArgs e)
+    private void NapDong(KhachHangDTO kh)
     {
-        KhachHangBUS bus = new KhachHangBUS();
-        ds = bus.DocDSKH();
-        lvDSKH.Items.Clear();
-        foreach (KhachHangDTO kh in ds)
-        {
-            int n = lvDSKH.Items.Count;
-            lvDSKH.Items.Add(kh.MaKH);
-            lvDSKH.Items[n].SubItems.Add(kh.HoTen);
-            lvDSKH.Items[n].SubItems.Add(kh.CCCD);
-            lvDSKH.Items[n].SubItems.Add(kh.SDT);
-            lvDSKH.Items[n].SubItems.Add(kh.Email);
-            lvDSKH.Items[n].SubItems.Add(kh.TaiKhoan);
-            lvDSKH.Items[n].SubItems.Add(kh.DiaChi);
-        }
-    }
-
-    private void btnThem_Click(object sender, EventArgs e)
-    {
-        KhachHangDTO kh = new KhachHangDTO(txtMaKH.Text, txtHoTen.Text, txtCCCD.Text, txtSDT.Text, txtEmail.Text, txtTaiKhoan.Text, txtMatKhau.Text, txtDiaChi.Text);
-        KhachHangBUS bus = new KhachHangBUS();
-        bus.Them(kh);
-        ds.Add(kh);
         int n = lvDSKH.Items.Count;
         lvDSKH.Items.Add(kh.MaKH);
         lvDSKH.Items[n].SubItems.Add(kh.HoTen);
@@ -53,43 +31,69 @@ public partial class FrmKhachHang : Form
         lvDSKH.Items[n].SubItems.Add(kh.DiaChi);
     }
 
+    private void HienThi(List<KhachHangDTO> dsMoi)
+    {
+        ds = dsMoi;
+        lvDSKH.Items.Clear();
+        foreach (KhachHangDTO kh in ds)
+            NapDong(kh);
+        thanhTim.HienSoDong(ds.Count);
+    }
+
+    private KhachHangDTO LayTuForm()
+    {
+        return new KhachHangDTO(txtMaKH.Text, txtHoTen.Text, txtCCCD.Text.Trim(), txtSDT.Text, txtEmail.Text, txtTaiKhoan.Text, txtMatKhau.Text, txtDiaChi.Text);
+    }
+
+    private void btnDocDSKH_Click(object sender, EventArgs e)
+    {
+        HienThi(new KhachHangBUS().DocDSKH());
+    }
+
+    private void btnThem_Click(object sender, EventArgs e)
+    {
+        KhachHangDTO kh = LayTuForm();
+        KhachHangBUS bus = new KhachHangBUS();
+        if (txtMaKH.Text.Trim() == "")
+        {
+            MessageBox.Show("Nhập mã trước khi thêm.");
+            return;
+        }
+        if (bus.TrungMa(txtMaKH.Text))
+        {
+            MessageBox.Show("Mã " + txtMaKH.Text + " đã tồn tại.");
+            return;
+        }
+        string loi = bus.KiemTra(kh);
+        if (loi != "")
+        {
+            MessageBox.Show(loi);
+            return;
+        }
+        if (!bus.Them(kh))
+            return;
+        btnDocDSKH_Click(sender, e);
+    }
+
     private void btnSua_Click(object sender, EventArgs e)
     {
-        KhachHangDTO kh = new KhachHangDTO(txtMaKH.Text, txtHoTen.Text, txtCCCD.Text, txtSDT.Text, txtEmail.Text, txtTaiKhoan.Text, txtMatKhau.Text, txtDiaChi.Text);
+        KhachHangDTO kh = LayTuForm();
         KhachHangBUS bus = new KhachHangBUS();
-        bus.Sua(kh);
-        ds = bus.DocDSKH();
-        lvDSKH.Items.Clear();
-        foreach (KhachHangDTO k in ds)
+        string loi = bus.KiemTra(kh);
+        if (loi != "")
         {
-            int n = lvDSKH.Items.Count;
-            lvDSKH.Items.Add(k.MaKH);
-            lvDSKH.Items[n].SubItems.Add(k.HoTen);
-            lvDSKH.Items[n].SubItems.Add(k.CCCD);
-            lvDSKH.Items[n].SubItems.Add(k.SDT);
-            lvDSKH.Items[n].SubItems.Add(k.Email);
-            lvDSKH.Items[n].SubItems.Add(k.TaiKhoan);
-            lvDSKH.Items[n].SubItems.Add(k.DiaChi);
+            MessageBox.Show(loi);
+            return;
         }
+        bus.Sua(kh);
+        HienThi(bus.DocDSKH());
     }
 
     private void btnXoa_Click(object sender, EventArgs e)
     {
         KhachHangBUS bus = new KhachHangBUS();
         bus.Xoa(txtMaKH.Text);
-        ds = bus.DocDSKH();
-        lvDSKH.Items.Clear();
-        foreach (KhachHangDTO k in ds)
-        {
-            int n = lvDSKH.Items.Count;
-            lvDSKH.Items.Add(k.MaKH);
-            lvDSKH.Items[n].SubItems.Add(k.HoTen);
-            lvDSKH.Items[n].SubItems.Add(k.CCCD);
-            lvDSKH.Items[n].SubItems.Add(k.SDT);
-            lvDSKH.Items[n].SubItems.Add(k.Email);
-            lvDSKH.Items[n].SubItems.Add(k.TaiKhoan);
-            lvDSKH.Items[n].SubItems.Add(k.DiaChi);
-        }
+        HienThi(bus.DocDSKH());
     }
 
     private void btnLamMoi_Click(object sender, EventArgs e)
@@ -116,6 +120,22 @@ public partial class FrmKhachHang : Form
     {
         HoaDonBUS bus = new HoaDonBUS();
         new FrmXemDS("Hóa đơn của KH " + txtMaKH.Text, bus.DocTheoKH(txtMaKH.Text)).ShowDialog();
+    }
+
+    private void thanhTim_Tim(object sender, EventArgs e)
+    {
+        HienThi(new KhachHangBUS().TimKiem(thanhTim.TuKhoa));
+    }
+
+    private void thanhTim_TimNangCao(object sender, EventArgs e)
+    {
+        if (new FrmTimNangCao(typeof(KhachHangDTO), Text).ShowDialog(this) == DialogResult.OK)
+            HienThi(new KhachHangBUS().TimNangCao(FrmTimNangCao.DieuKien));
+    }
+
+    private void thanhTim_TatCa(object sender, EventArgs e)
+    {
+        btnDocDSKH_Click(sender, e);
     }
 
     private void lvDSKH_SelectedIndexChanged(object sender, EventArgs e)

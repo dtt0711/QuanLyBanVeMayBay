@@ -1,57 +1,85 @@
-using BanVeMayBay.DAO;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DAO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.BUS;
+namespace QuanLyBanVeMayBay.BUS;
 
 public class CTHDBUS
 {
-    private HoaDonDAO hdDao = new HoaDonDAO();
-    private ChuyenBayDAO cbDao = new ChuyenBayDAO();
-
-    public List<CTHDDTO> DocTheoHD(string maHD)
+    public List<CTHDDTO> DocDSCTHD()
     {
         CTHDDAO dao = new CTHDDAO();
-        return dao.DocTheoHD(maHD);
+        return dao.DocDSCTHD();
     }
 
-    public List<CTHDDTO> DocTheoCB(string maCB)
+    public List<CTHDDTO> DocTheoHD(string maCha)
     {
         CTHDDAO dao = new CTHDDAO();
-        return dao.DocTheoCB(maCB);
+        return dao.DocTheoHD(maCha);
     }
 
-    // Đơn giá lấy từ giá vé của chuyến bay, thành tiền = số lượng * đơn giá
-    public void Them(string maHD, string maCB, int soLuong)
+    public List<CTHDDTO> DocTheoCB(string maCha)
     {
         CTHDDAO dao = new CTHDDAO();
-        if (string.IsNullOrWhiteSpace(maCB))
-            throw new Exception("Chưa chọn chuyến bay!");
-        if (soLuong <= 0)
-            throw new Exception("Số lượng phải lớn hơn 0!");
-        if (!hdDao.DocDSHD().Any(t => t.MaHD == maHD))
-            throw new Exception("Hóa đơn không tồn tại!");
-        ChuyenBayDTO? chuyenBay = cbDao.DocDSCB().FirstOrDefault(t => t.MaCB == maCB);
-        if (chuyenBay == null)
-            throw new Exception("Chuyến bay không tồn tại!");
-        if (dao.DocTheoHD(maHD).Any(t => t.MaCB == maCB))
-            throw new Exception("Chuyến bay này đã có trong hóa đơn!");
-        if (soLuong > chuyenBay.SoGheTrong)
-            throw new Exception("Chuyến bay chỉ còn " + chuyenBay.SoGheTrong + " ghế trống!");
+        return dao.DocTheoCB(maCha);
+    }
 
-        CTHDDTO cthd = new CTHDDTO(maHD, maCB, soLuong, chuyenBay.GiaVe, soLuong * chuyenBay.GiaVe);
-        dao.Them(cthd);
-        // ghế trống và tổng tiền đã đổi trong CSDL nên phải đọc lại
-        ChuyenBayBUS.LamMoiDS();
+    public bool TrungMa(string maHD, string maVe)
+    {
+        foreach (CTHDDTO c in DocTheoHD(maHD))
+            if (c.MaVe.CompareTo(maVe) == 0)
+                return true;
+        return false;
+    }
+
+    // Các vé của phiếu đặt (của hóa đơn) chưa được tính tiền ở hóa đơn nào
+    public List<VeDTO> VeChuaLapHD(string maHD)
+    {
+        List<VeDTO> kq = new List<VeDTO>();
+        HoaDonDTO hd = new HoaDonBUS().timKiem(maHD);
+        if (hd == null)
+            return kq;
+        CTHDDAO dao = new CTHDDAO();
+        foreach (VeDTO v in new VeBUS().DocTheoDatVe(hd.MaDV))
+            if (dao.DaLapHoaDon(v.MaVe) == "")
+                kq.Add(v);
+        return kq;
+    }
+
+    // Một dòng chi tiết = một vé: vé phải thuộc phiếu đặt của hóa đơn và chỉ được tính tiền 1 lần
+    public string KiemTra(string maHD, string maVe)
+    {
+        HoaDonDTO hd = new HoaDonBUS().timKiem(maHD);
+        VeDTO ve = new VeBUS().timKiem(maVe);
+        if (hd == null || ve == null)
+            return "Không tìm thấy hóa đơn hoặc vé.";
+        if (ve.MaDV != hd.MaDV)
+            return "Vé " + maVe + " thuộc phiếu đặt " + ve.MaDV + ", không thuộc phiếu đặt " + hd.MaDV + " của hóa đơn này.";
+        string daLap = new CTHDDAO().DaLapHoaDon(maVe);
+        if (daLap != "")
+            return "Vé " + maVe + " đã được tính tiền ở hóa đơn " + daLap + ".";
+        return "";
+    }
+
+    // Số lượng luôn là 1 vì một vé là một ghế của một hành khách
+    public bool Them(string maHD, string maVe)
+    {
+        VeDTO ve = new VeBUS().timKiem(maVe);
+        if (ve == null)
+            return false;
+        CTHDDTO cthd = new CTHDDTO(maHD, maVe, ve.DonGiaVe, 1, ve.DonGiaVe);
+        CTHDDAO dao = new CTHDDAO();
+        if (!dao.Them(cthd))
+            return false;
         HoaDonBUS.LamMoiDS();
+        return true;
     }
 
-    public void Xoa(string maHD, string maCB)
+    public bool Xoa(string maHD, string maVe)
     {
         CTHDDAO dao = new CTHDDAO();
-        if (string.IsNullOrWhiteSpace(maHD) || string.IsNullOrWhiteSpace(maCB))
-            throw new Exception("Chưa chọn chi tiết cần xóa!");
-        dao.Xoa(maHD, maCB);
-        ChuyenBayBUS.LamMoiDS();
+        if (!dao.Xoa(maHD, maVe))
+            return false;
         HoaDonBUS.LamMoiDS();
+        return true;
     }
 }

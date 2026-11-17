@@ -1,4 +1,4 @@
-namespace BanVeMayBay.DTO;
+namespace QuanLyBanVeMayBay.DTO;
 
 public class HangHangKhongDTO
 {

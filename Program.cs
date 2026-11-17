@@ -1,8 +1,8 @@
 using System;
 using System.Windows.Forms;
-using BanVeMayBay.GUI;
+using QuanLyBanVeMayBay.GUI;
 
-namespace BanVeMayBay
+namespace QuanLyBanVeMayBay
 {
     internal static class Program
     {

@@ -1,30 +1,35 @@
 using MySql.Data.MySqlClient;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.DAO;
+namespace QuanLyBanVeMayBay.DAO;
 
 public class KhachHangDAO
 {
+    MySqlConnection connection = MyConnection.GetConnection();
+
+    public KhachHangDAO()
+    {
+        MyConnection.Mo(connection);
+    }
+
     public List<KhachHangDTO> DocDSKH()
     {
         List<KhachHangDTO> dskh = new List<KhachHangDTO>();
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "SELECT MaKH,HoTen,CCCD,SDT,Email,TaiKhoan,MatKhau,DiaChi FROM KhachHang";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
                 string ma = reader.GetString(0);
                 string hoTen = reader.GetString("HoTen");
                 string cccd = reader.GetString("CCCD");
-                string sdt = reader.GetString("SDT");
-                string email = reader.GetString("Email");
+                string sdt = reader.IsDBNull(reader.GetOrdinal("SDT")) ? "" : reader.GetString("SDT");
+                string email = reader.IsDBNull(reader.GetOrdinal("Email")) ? "" : reader.GetString("Email");
                 string taiKhoan = reader.GetString("TaiKhoan");
                 string matKhau = reader.GetString("MatKhau");
-                string diaChi = reader.GetString("DiaChi");
+                string diaChi = reader.IsDBNull(reader.GetOrdinal("DiaChi")) ? "" : reader.GetString("DiaChi");
                 KhachHangDTO kh = new KhachHangDTO(ma, hoTen, cccd, sdt, email, taiKhoan, matKhau, diaChi);
                 dskh.Add(kh);//add to arraylist dskh
             }
@@ -32,88 +37,50 @@ public class KhachHangDAO
         }
         catch
         {
-            throw new Exception("Lỗi đọc thông tin khách hàng!");
-        }
-        finally
-        {
-            connection.Close();
+            MessageBox.Show("Lỗi đọc thông tin khách hàng!");
         }
         return dskh;
     }
 
-    public void Them(KhachHangDTO kh)
+    public bool Them(KhachHangDTO kh)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = kh.MaKH;
-            string hoTen = kh.HoTen;
-            string cccd = kh.CCCD;
-            string sdt = kh.SDT;
-            string email = kh.Email;
-            string taiKhoan = kh.TaiKhoan;
-            string matKhau = kh.MatKhau;
-            string diaChi = kh.DiaChi;
-            string query = "INSERT INTO KhachHang(MaKH,HoTen,CCCD,SDT,Email,TaiKhoan,MatKhau,DiaChi) VALUES ('" + ma + "','" + hoTen + "','" + cccd + "','" + sdt + "','" + email + "','" + taiKhoan + "','" + matKhau + "','" + diaChi + "')";
+            string query = "INSERT INTO KhachHang VALUES ('" + kh.MaKH
+                + "','" + kh.HoTen + "','" + kh.CCCD + "','" + kh.SDT
+                + "','" + kh.Email + "','" + kh.TaiKhoan + "','" + kh.MatKhau
+                + "','" + kh.DiaChi + "')";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi ghi thông tin khách hàng!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi ghi thông tin khách hàng!"); return false; }
     }
 
-    public void Sua(KhachHangDTO kh)
+    public bool Sua(KhachHangDTO kh)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = kh.MaKH;
-            string hoTen = kh.HoTen;
-            string cccd = kh.CCCD;
-            string sdt = kh.SDT;
-            string email = kh.Email;
-            string taiKhoan = kh.TaiKhoan;
-            string matKhau = kh.MatKhau;
-            string diaChi = kh.DiaChi;
-            string query = "UPDATE KhachHang SET HoTen='" + hoTen + "', CCCD='" + cccd + "', SDT='" + sdt + "', Email='" + email + "', TaiKhoan='" + taiKhoan + "', MatKhau='" + matKhau + "', DiaChi='" + diaChi + "' WHERE MaKH='" + ma + "'";
+            string query = "UPDATE KhachHang SET HoTen='" + kh.HoTen + "',CCCD='" + kh.CCCD
+                + "',SDT='" + kh.SDT + "',Email='" + kh.Email + "',TaiKhoan='" + kh.TaiKhoan
+                + "',MatKhau='" + kh.MatKhau + "',DiaChi='" + kh.DiaChi
+                + "' WHERE MaKH='" + kh.MaKH + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi sửa thông tin khách hàng!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi cập nhật khách hàng!"); return false; }
     }
 
-    public void Xoa(string ma)
+    public bool Xoa(string ma)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "DELETE FROM KhachHang WHERE MaKH='" + ma + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi xóa thông tin khách hàng!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi xóa khách hàng!"); return false; }
     }
 }

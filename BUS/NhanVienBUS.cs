@@ -1,12 +1,11 @@
-using BanVeMayBay.DAO;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DAO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.BUS;
+namespace QuanLyBanVeMayBay.BUS;
 
 public class NhanVienBUS
 {
-    private static List<NhanVienDTO>? dsnv;
-    private HoaDonDAO hoaDonDao = new HoaDonDAO();
+    private static List<NhanVienDTO> dsnv;
 
     public List<NhanVienDTO> DocDSNV()
     {
@@ -19,52 +18,86 @@ public class NhanVienBUS
         return dsnv;
     }
 
-    // xóa danh sách đã lưu để lần đọc sau lấy lại dữ liệu mới từ CSDL
     public static void LamMoiDS()
     {
         dsnv = null;
     }
 
-    private void KiemTra(NhanVienDTO nv)
+    public bool Them(NhanVienDTO nv)
     {
-        if (string.IsNullOrWhiteSpace(nv.MaNV))
-            throw new Exception("Mã NV không được để trống!");
-        if (string.IsNullOrWhiteSpace(nv.Ho))
-            throw new Exception("Họ không được để trống!");
-        if (string.IsNullOrWhiteSpace(nv.Ten))
-            throw new Exception("Tên không được để trống!");
-        if (string.IsNullOrWhiteSpace(nv.ChucVu))
-            throw new Exception("Chức vụ không được để trống!");
+        DocDSNV();
+        NhanVienDAO dao = new NhanVienDAO();
+        if (!dao.Them(nv))
+            return false;
+        dsnv.Add(nv);
+        return true;
     }
 
-    public void Them(NhanVienDTO nv)
+    public bool Sua(NhanVienDTO nv)
     {
+        DocDSNV();
         NhanVienDAO dao = new NhanVienDAO();
-        KiemTra(nv);
-        if (dao.DocDSNV().Any(t => t.MaNV == nv.MaNV))
-            throw new Exception("Mã NV đã tồn tại!");
-        dao.Them(nv);
-        LamMoiDS();
+        if (!dao.Sua(nv))
+            return false;
+        foreach (NhanVienDTO n in dsnv)
+            if (n.MaNV.CompareTo(nv.MaNV) == 0)
+            {
+                n.Ho = nv.Ho;
+                n.Ten = nv.Ten;
+                n.ChucVu = nv.ChucVu;
+            }
+        return true;
     }
 
-    public void Sua(NhanVienDTO nv)
+    public bool Xoa(string ma)
     {
+        DocDSNV();
         NhanVienDAO dao = new NhanVienDAO();
-        KiemTra(nv);
-        if (!dao.DocDSNV().Any(t => t.MaNV == nv.MaNV))
-            throw new Exception("Không tìm thấy Mã NV cần sửa!");
-        dao.Sua(nv);
-        LamMoiDS();
+        if (!dao.Xoa(ma))
+            return false;
+        dsnv.Remove(timKiem(ma));
+        return true;
     }
 
-    public void Xoa(string ma)
+    // Kiểm tra dữ liệu trước khi ghi. Trả về "" nếu hợp lệ, ngược lại trả về lỗi.
+    public string KiemTra(NhanVienDTO x)
     {
-        NhanVienDAO dao = new NhanVienDAO();
-        if (string.IsNullOrWhiteSpace(ma))
-            throw new Exception("Chưa chọn Mã NV cần xóa!");
-        if (hoaDonDao.DocTheoNV(ma).Count > 0)
-            throw new Exception("Nhân viên đã lập hóa đơn, không thể xóa!");
-        dao.Xoa(ma);
-        LamMoiDS();
+        if (x.Ho.Trim() == "" || x.Ten.Trim() == "")
+            return "Nhập họ và tên nhân viên.";
+        return "";
+    }
+
+    // Tìm kiếm thường: giữ lại các dòng có ít nhất một field chứa từ khóa
+    public List<NhanVienDTO> TimKiem(string tuKhoa)
+    {
+        List<NhanVienDTO> kq = new List<NhanVienDTO>();
+        foreach (NhanVienDTO x in DocDSNV())
+            if (TimKiemBUS.Chua(x.MaNV, tuKhoa)
+                || TimKiemBUS.Chua(x.Ho + " " + x.Ten, tuKhoa)
+                || TimKiemBUS.Chua(x.Ho, tuKhoa)
+                || TimKiemBUS.Chua(x.Ten, tuKhoa)
+                || TimKiemBUS.Chua(x.ChucVu, tuKhoa))
+                kq.Add(x);
+        return kq;
+    }
+
+    // Tìm kiếm nâng cao: lọc theo các điều kiện and, or, not, >, ≥, <, ≤, <>
+    public List<NhanVienDTO> TimNangCao(List<DieuKienDTO> dsDK)
+    {
+        return TimKiemBUS.Loc(DocDSNV(), dsDK);
+    }
+
+    public bool TrungMa(string ma)
+    {
+        DocDSNV();
+        return timKiem(ma) != null;
+    }
+
+    public NhanVienDTO timKiem(string ma)
+    {
+        foreach (NhanVienDTO n in DocDSNV())
+            if (n.MaNV.CompareTo(ma) == 0)
+                return n;
+        return null;
     }
 }

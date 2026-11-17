@@ -1,14 +1,11 @@
-using BanVeMayBay.DAO;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DAO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.BUS;
+namespace QuanLyBanVeMayBay.BUS;
 
 public class HoaDonBUS
 {
-    private static List<HoaDonDTO>? dshd;
-    private NhanVienDAO nhanVienDao = new NhanVienDAO();
-    private KhachHangDAO khachHangDao = new KhachHangDAO();
-    private CTHDDAO cthdDao = new CTHDDAO();
+    private static List<HoaDonDTO> dshd;
 
     public List<HoaDonDTO> DocDSHD()
     {
@@ -21,7 +18,6 @@ public class HoaDonBUS
         return dshd;
     }
 
-    // xóa danh sách đã lưu để lần đọc sau lấy lại dữ liệu mới từ CSDL
     public static void LamMoiDS()
     {
         dshd = null;
@@ -39,48 +35,89 @@ public class HoaDonBUS
         return dao.DocTheoKH(maCha);
     }
 
-    private void KiemTra(HoaDonDTO hd)
+    // Tổng tiền do CSDL tự tính lại khi ghi, nên đọc lại danh sách sau khi ghi
+    // Kiểm tra theo nghiệp vụ: mỗi phiếu đặt chỉ lập 1 hóa đơn, khách hàng là người đặt,
+    // ngày lập không trước ngày đặt
+    public string KiemTra(HoaDonDTO hd)
     {
-        if (string.IsNullOrWhiteSpace(hd.MaHD))
-            throw new Exception("Mã HĐ không được để trống!");
-        if (string.IsNullOrWhiteSpace(hd.MaNV))
-            throw new Exception("Nhân viên không được để trống!");
-        if (string.IsNullOrWhiteSpace(hd.MaKH))
-            throw new Exception("Khách hàng không được để trống!");
-        if (!nhanVienDao.DocDSNV().Any(t => t.MaNV == hd.MaNV))
-            throw new Exception("Nhân viên không tồn tại!");
-        if (!khachHangDao.DocDSKH().Any(t => t.MaKH == hd.MaKH))
-            throw new Exception("Khách hàng không tồn tại!");
+        DatVeDTO dv = new DatVeBUS().timKiem(hd.MaDV);
+        if (dv == null)
+            return "Chọn phiếu đặt vé.";
+        foreach (HoaDonDTO h in DocDSHD())
+            if (h.MaDV == hd.MaDV && h.MaHD != hd.MaHD)
+                return "Phiếu đặt " + hd.MaDV + " đã có hóa đơn " + h.MaHD + ".";
+        if (hd.MaKH != dv.MaKH)
+            return "Khách hàng của hóa đơn phải là người đặt " + dv.MaKH + ".";
+        if (hd.NgayLap < dv.NgayDat)
+            return "Ngày lập hóa đơn không được trước ngày đặt " + dv.NgayDat.ToString("dd/MM/yyyy HH:mm") + ".";
+        return "";
     }
 
-    public void Them(HoaDonDTO hd)
+    // Lập hóa đơn cho phiếu đặt: tự đưa tất cả vé của phiếu đặt vào chi tiết hóa đơn
+    public bool Them(HoaDonDTO hd)
     {
         HoaDonDAO dao = new HoaDonDAO();
-        KiemTra(hd);
-        if (dao.DocDSHD().Any(t => t.MaHD == hd.MaHD))
-            throw new Exception("Mã HĐ đã tồn tại!");
-        dao.Them(hd);
+        if (!dao.Them(hd))
+            return false;
         LamMoiDS();
+        CTHDBUS ct = new CTHDBUS();
+        foreach (VeDTO v in ct.VeChuaLapHD(hd.MaHD))
+            ct.Them(hd.MaHD, v.MaVe);
+        LamMoiDS();
+        return true;
     }
 
-    public void Sua(HoaDonDTO hd)
+    public bool Sua(HoaDonDTO hd)
     {
         HoaDonDAO dao = new HoaDonDAO();
-        KiemTra(hd);
-        if (!dao.DocDSHD().Any(t => t.MaHD == hd.MaHD))
-            throw new Exception("Không tìm thấy Mã HĐ cần sửa!");
-        dao.Sua(hd);
+        if (!dao.Sua(hd))
+            return false;
         LamMoiDS();
+        return true;
     }
 
-    public void Xoa(string ma)
+    public bool Xoa(string ma)
     {
+        DocDSHD();
         HoaDonDAO dao = new HoaDonDAO();
-        if (string.IsNullOrWhiteSpace(ma))
-            throw new Exception("Chưa chọn Mã HĐ cần xóa!");
-        if (cthdDao.DocTheoHD(ma).Count > 0)
-            throw new Exception("Hóa đơn còn chi tiết, hãy xóa chi tiết trước!");
-        dao.Xoa(ma);
-        LamMoiDS();
+        if (!dao.Xoa(ma))
+            return false;
+        dshd.Remove(timKiem(ma));
+        return true;
+    }
+
+    // Tìm kiếm thường: giữ lại các dòng có ít nhất một field chứa từ khóa
+    public List<HoaDonDTO> TimKiem(string tuKhoa)
+    {
+        List<HoaDonDTO> kq = new List<HoaDonDTO>();
+        foreach (HoaDonDTO x in DocDSHD())
+            if (TimKiemBUS.Chua(x.MaHD, tuKhoa)
+                || TimKiemBUS.Chua(x.MaKH, tuKhoa)
+                || TimKiemBUS.Chua(x.MaNV, tuKhoa)
+                || TimKiemBUS.Chua(x.MaDV, tuKhoa)
+                || TimKiemBUS.Chua(x.PhuongThucTT, tuKhoa)
+                || TimKiemBUS.Chua(x.TrangThai, tuKhoa))
+                kq.Add(x);
+        return kq;
+    }
+
+    // Tìm kiếm nâng cao: lọc theo các điều kiện and, or, not, >, ≥, <, ≤, <>
+    public List<HoaDonDTO> TimNangCao(List<DieuKienDTO> dsDK)
+    {
+        return TimKiemBUS.Loc(DocDSHD(), dsDK);
+    }
+
+    public bool TrungMa(string ma)
+    {
+        DocDSHD();
+        return timKiem(ma) != null;
+    }
+
+    public HoaDonDTO timKiem(string ma)
+    {
+        foreach (HoaDonDTO h in DocDSHD())
+            if (h.MaHD.CompareTo(ma) == 0)
+                return h;
+        return null;
     }
 }

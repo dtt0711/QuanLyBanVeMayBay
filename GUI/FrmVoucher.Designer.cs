@@ -1,4 +1,4 @@
-namespace BanVeMayBay.GUI
+namespace QuanLyBanVeMayBay.GUI
 {
     partial class FrmVoucher
     {
@@ -13,6 +13,7 @@ namespace BanVeMayBay.GUI
 
         private void InitializeComponent()
         {
+            thanhTim = new ThanhTimKiem();
             lvDSVC = new ListView();
             colMa = new ColumnHeader();
             colCTKM = new ColumnHeader();
@@ -127,10 +128,15 @@ namespace BanVeMayBay.GUI
             btnDocDSVC.Text = "Đọc DS";
             btnDocDSVC.UseVisualStyleBackColor = true;
             btnDocDSVC.Click += btnDocDSVC_Click;
+            thanhTim.Name = "thanhTim";
+            thanhTim.Tim += thanhTim_Tim;
+            thanhTim.TimNangCao += thanhTim_TimNangCao;
+            thanhTim.TatCa += thanhTim_TatCa;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(960, 620);
             Controls.Add(lvDSVC);
+            Controls.Add(thanhTim);
             Controls.Add(pnl);
             Name = "FrmVoucher";
             StartPosition = FormStartPosition.CenterScreen;
@@ -158,5 +164,6 @@ namespace BanVeMayBay.GUI
         private Button btnXoa;
         private Button btnLamMoi;
         private Button btnDocDSVC;
+        private ThanhTimKiem thanhTim;
     }
 }

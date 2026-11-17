@@ -1,7 +1,7 @@
-using BanVeMayBay.BUS;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.BUS;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.GUI;
+namespace QuanLyBanVeMayBay.GUI;
 
 public partial class FrmNhanVien : Form
 {
@@ -19,27 +19,8 @@ public partial class FrmNhanVien : Form
         btnDocDSNV_Click(sender, e);
     }
 
-    private void btnDocDSNV_Click(object sender, EventArgs e)
+    private void NapDong(NhanVienDTO nv)
     {
-        NhanVienBUS bus = new NhanVienBUS();
-        ds = bus.DocDSNV();
-        lvDSNV.Items.Clear();
-        foreach (NhanVienDTO nv in ds)
-        {
-            int n = lvDSNV.Items.Count;
-            lvDSNV.Items.Add(nv.MaNV);
-            lvDSNV.Items[n].SubItems.Add(nv.Ho);
-            lvDSNV.Items[n].SubItems.Add(nv.Ten);
-            lvDSNV.Items[n].SubItems.Add(nv.ChucVu);
-        }
-    }
-
-    private void btnThem_Click(object sender, EventArgs e)
-    {
-        NhanVienDTO nv = new NhanVienDTO(txtMaNV.Text, txtHo.Text, txtTen.Text, txtChucVu.Text);
-        NhanVienBUS bus = new NhanVienBUS();
-        bus.Them(nv);
-        ds.Add(nv);
         int n = lvDSNV.Items.Count;
         lvDSNV.Items.Add(nv.MaNV);
         lvDSNV.Items[n].SubItems.Add(nv.Ho);
@@ -47,37 +28,64 @@ public partial class FrmNhanVien : Form
         lvDSNV.Items[n].SubItems.Add(nv.ChucVu);
     }
 
+    private void HienThi(List<NhanVienDTO> dsMoi)
+    {
+        ds = dsMoi;
+        lvDSNV.Items.Clear();
+        foreach (NhanVienDTO nv in ds)
+            NapDong(nv);
+        thanhTim.HienSoDong(ds.Count);
+    }
+
+    private void btnDocDSNV_Click(object sender, EventArgs e)
+    {
+        HienThi(new NhanVienBUS().DocDSNV());
+    }
+
+    private void btnThem_Click(object sender, EventArgs e)
+    {
+        NhanVienDTO nv = new NhanVienDTO(txtMaNV.Text, txtHo.Text, txtTen.Text, txtChucVu.Text);
+        NhanVienBUS bus = new NhanVienBUS();
+        if (txtMaNV.Text.Trim() == "")
+        {
+            MessageBox.Show("Nhập mã trước khi thêm.");
+            return;
+        }
+        if (bus.TrungMa(txtMaNV.Text))
+        {
+            MessageBox.Show("Mã " + txtMaNV.Text + " đã tồn tại.");
+            return;
+        }
+        string loi = bus.KiemTra(nv);
+        if (loi != "")
+        {
+            MessageBox.Show(loi);
+            return;
+        }
+        if (!bus.Them(nv))
+            return;
+        btnDocDSNV_Click(sender, e);
+    }
+
     private void btnSua_Click(object sender, EventArgs e)
     {
         NhanVienDTO nv = new NhanVienDTO(txtMaNV.Text, txtHo.Text, txtTen.Text, txtChucVu.Text);
         NhanVienBUS bus = new NhanVienBUS();
-        bus.Sua(nv);
-        ds = bus.DocDSNV();
-        lvDSNV.Items.Clear();
-        foreach (NhanVienDTO nvi in ds)
+        string loi = bus.KiemTra(nv);
+        if (loi != "")
         {
-            int n = lvDSNV.Items.Count;
-            lvDSNV.Items.Add(nvi.MaNV);
-            lvDSNV.Items[n].SubItems.Add(nvi.Ho);
-            lvDSNV.Items[n].SubItems.Add(nvi.Ten);
-            lvDSNV.Items[n].SubItems.Add(nvi.ChucVu);
+            MessageBox.Show(loi);
+            return;
         }
+        bus.Sua(nv);
+        HienThi(bus.DocDSNV());
     }
 
     private void btnXoa_Click(object sender, EventArgs e)
     {
         NhanVienBUS bus = new NhanVienBUS();
         bus.Xoa(txtMaNV.Text);
-        ds = bus.DocDSNV();
-        lvDSNV.Items.Clear();
-        foreach (NhanVienDTO nv in ds)
-        {
-            int n = lvDSNV.Items.Count;
-            lvDSNV.Items.Add(nv.MaNV);
-            lvDSNV.Items[n].SubItems.Add(nv.Ho);
-            lvDSNV.Items[n].SubItems.Add(nv.Ten);
-            lvDSNV.Items[n].SubItems.Add(nv.ChucVu);
-        }
+        HienThi(bus.DocDSNV());
     }
 
     private void btnLamMoi_Click(object sender, EventArgs e)
@@ -94,6 +102,22 @@ public partial class FrmNhanVien : Form
     {
         HoaDonBUS bus = new HoaDonBUS();
         new FrmXemDS("Hóa đơn của NV " + txtMaNV.Text, bus.DocTheoNV(txtMaNV.Text)).ShowDialog();
+    }
+
+    private void thanhTim_Tim(object sender, EventArgs e)
+    {
+        HienThi(new NhanVienBUS().TimKiem(thanhTim.TuKhoa));
+    }
+
+    private void thanhTim_TimNangCao(object sender, EventArgs e)
+    {
+        if (new FrmTimNangCao(typeof(NhanVienDTO), Text).ShowDialog(this) == DialogResult.OK)
+            HienThi(new NhanVienBUS().TimNangCao(FrmTimNangCao.DieuKien));
+    }
+
+    private void thanhTim_TatCa(object sender, EventArgs e)
+    {
+        btnDocDSNV_Click(sender, e);
     }
 
     private void lvDSNV_SelectedIndexChanged(object sender, EventArgs e)

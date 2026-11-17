@@ -1,7 +1,7 @@
 using MySql.Data.MySqlClient;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.DAO;
+namespace QuanLyBanVeMayBay.DAO;
 
 public class ChuyenBayDAO
 {
@@ -9,7 +9,25 @@ public class ChuyenBayDAO
 
     public ChuyenBayDAO()
     {
-        connection.Open();
+        MyConnection.Mo(connection);
+    }
+
+    private ChuyenBayDTO DocDong(MySqlDataReader reader)
+    {
+        string ma = reader.GetString(0);
+        string maHHK = reader.GetString("MaHHK");
+        string maSanBayDi = reader.GetString("MaSanBayDi");
+        string maSanBayDen = reader.GetString("MaSanBayDen");
+        string maMayBay = reader.GetString("MaMayBay");
+        DateTime ngayKhoiHanh = reader.GetDateTime("NgayKhoiHanh");
+        DateTime ngayDen = reader.GetDateTime("NgayDen");
+        int thoiGianBay = reader.IsDBNull(reader.GetOrdinal("ThoiGianBay")) ? 0 : reader.GetInt32("ThoiGianBay");
+        string thoiGianDen = reader.IsDBNull(reader.GetOrdinal("ThoiGianDen")) ? "" : reader.GetTimeSpan("ThoiGianDen").ToString(@"hh\:mm\:ss");
+        int tongSoGhe = reader.GetInt32("TongSoGhe");
+        int soVeDaBan = reader.GetInt32("SoVeDaBan");
+        decimal giaVe = reader.GetDecimal("GiaVe");
+        string trangThai = reader.GetString("TrangThai");
+        return new ChuyenBayDTO(ma, maHHK, maSanBayDi, maSanBayDen, maMayBay, ngayKhoiHanh, ngayDen, thoiGianBay, thoiGianDen, tongSoGhe, soVeDaBan, giaVe, trangThai);
     }
 
     public List<ChuyenBayDTO> DocDSCB()
@@ -17,18 +35,12 @@ public class ChuyenBayDAO
         List<ChuyenBayDTO> dscb = new List<ChuyenBayDTO>();
         try
         {
-            string query = "SELECT MaCB,MaMayBay,TuyenBay,NgayBay,GiaVe,SoGheTrong FROM ChuyenBay";
+            string query = "SELECT MaChuyenBay,MaHHK,MaSanBayDi,MaSanBayDen,MaMayBay,NgayKhoiHanh,NgayDen,ThoiGianBay,ThoiGianDen,TongSoGhe,SoVeDaBan,GiaVe,TrangThai FROM ChuyenBay";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string ma = reader.GetString(0);
-                string maMayBay = reader.GetString("MaMayBay");
-                string tuyenBay = reader.GetString("TuyenBay");
-                DateTime ngayBay = reader.GetDateTime("NgayBay");
-                decimal giaVe = reader.GetDecimal("GiaVe");
-                int soGheTrong = reader.GetInt32("SoGheTrong");
-                ChuyenBayDTO cb = new ChuyenBayDTO(ma, maMayBay, tuyenBay, ngayBay, giaVe, soGheTrong);
+                ChuyenBayDTO cb = DocDong(reader);
                 dscb.Add(cb);//add to arraylist dscb
             }
             reader.Close();
@@ -45,18 +57,12 @@ public class ChuyenBayDAO
         List<ChuyenBayDTO> dscb = new List<ChuyenBayDTO>();
         try
         {
-            string query = "SELECT MaCB,MaMayBay,TuyenBay,NgayBay,GiaVe,SoGheTrong FROM ChuyenBay WHERE MaMayBay='" + maCha + "'";
+            string query = "SELECT MaChuyenBay,MaHHK,MaSanBayDi,MaSanBayDen,MaMayBay,NgayKhoiHanh,NgayDen,ThoiGianBay,ThoiGianDen,TongSoGhe,SoVeDaBan,GiaVe,TrangThai FROM ChuyenBay WHERE MaMayBay='" + maCha + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string ma = reader.GetString(0);
-                string maMayBay = reader.GetString("MaMayBay");
-                string tuyenBay = reader.GetString("TuyenBay");
-                DateTime ngayBay = reader.GetDateTime("NgayBay");
-                decimal giaVe = reader.GetDecimal("GiaVe");
-                int soGheTrong = reader.GetInt32("SoGheTrong");
-                ChuyenBayDTO cb = new ChuyenBayDTO(ma, maMayBay, tuyenBay, ngayBay, giaVe, soGheTrong);
+                ChuyenBayDTO cb = DocDong(reader);
                 dscb.Add(cb);//add to arraylist dscb
             }
             reader.Close();
@@ -68,43 +74,57 @@ public class ChuyenBayDAO
         return dscb;
     }
 
-    public void Them(ChuyenBayDTO cb)
+    public bool Them(ChuyenBayDTO cb)
     {
         try
         {
-            string ngayBay = cb.NgayBay.ToString("yyyy-MM-dd HH:mm:ss");
+            string ngayKhoiHanh = cb.NgayKhoiHanh.ToString("yyyy-MM-dd HH:mm:ss");
+            string ngayDen = cb.NgayDen.ToString("yyyy-MM-dd HH:mm:ss");
+            string thoiGianDen = string.IsNullOrEmpty(cb.ThoiGianDen) ? "NULL" : "'" + cb.ThoiGianDen + "'";
             string giaVe = cb.GiaVe.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            string query = "INSERT INTO ChuyenBay VALUES ('" + cb.MaCB
-                + "','" + cb.MaMayBay + "','" + cb.TuyenBay + "','" + ngayBay + "'," + giaVe + "," + cb.SoGheTrong + ")";
+            string query = "INSERT INTO ChuyenBay VALUES ('" + cb.MaChuyenBay
+                + "','" + cb.MaHHK + "','" + cb.MaSanBayDi + "','" + cb.MaSanBayDen
+                + "','" + cb.MaMayBay + "','" + ngayKhoiHanh + "','" + ngayDen + "'," + cb.ThoiGianBay
+                + "," + thoiGianDen + ",(SELECT COUNT(*) FROM Ghe WHERE MaMayBay='" + cb.MaMayBay + "'),0," + giaVe
+                + ",'" + cb.TrangThai + "')";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch { MessageBox.Show("Lỗi ghi thông tin chuyến bay!"); }
+        catch { MessageBox.Show("Lỗi ghi thông tin chuyến bay!"); return false; }
     }
 
-    public void Sua(ChuyenBayDTO cb)
+    public bool Sua(ChuyenBayDTO cb)
     {
         try
         {
-            string ngayBay = cb.NgayBay.ToString("yyyy-MM-dd HH:mm:ss");
+            string ngayKhoiHanh = cb.NgayKhoiHanh.ToString("yyyy-MM-dd HH:mm:ss");
+            string ngayDen = cb.NgayDen.ToString("yyyy-MM-dd HH:mm:ss");
+            string thoiGianDen = string.IsNullOrEmpty(cb.ThoiGianDen) ? "NULL" : "'" + cb.ThoiGianDen + "'";
             string giaVe = cb.GiaVe.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            string query = "UPDATE ChuyenBay SET MaMayBay='" + cb.MaMayBay + "',TuyenBay='" + cb.TuyenBay
-                + "',NgayBay='" + ngayBay + "',GiaVe=" + giaVe + ",SoGheTrong=" + cb.SoGheTrong
-                + " WHERE MaCB='" + cb.MaCB + "'";
+            string query = "UPDATE ChuyenBay SET MaHHK='" + cb.MaHHK + "',MaSanBayDi='" + cb.MaSanBayDi
+                + "',MaSanBayDen='" + cb.MaSanBayDen + "',MaMayBay='" + cb.MaMayBay
+                + "',NgayKhoiHanh='" + ngayKhoiHanh + "',NgayDen='" + ngayDen
+                + "',ThoiGianBay=" + cb.ThoiGianBay + ",ThoiGianDen=" + thoiGianDen
+                + ",TongSoGhe=(SELECT COUNT(*) FROM Ghe WHERE MaMayBay='" + cb.MaMayBay + "')"
+                + ",GiaVe=" + giaVe + ",TrangThai='" + cb.TrangThai
+                + "' WHERE MaChuyenBay='" + cb.MaChuyenBay + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch { MessageBox.Show("Lỗi cập nhật chuyến bay!"); }
+        catch { MessageBox.Show("Lỗi cập nhật chuyến bay!"); return false; }
     }
 
-    public void Xoa(string ma)
+    public bool Xoa(string ma)
     {
         try
         {
-            string query = "DELETE FROM ChuyenBay WHERE MaCB='" + ma + "'";
+            string query = "DELETE FROM ChuyenBay WHERE MaChuyenBay='" + ma + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch { MessageBox.Show("Lỗi xóa chuyến bay!"); }
+        catch { MessageBox.Show("Lỗi xóa chuyến bay!"); return false; }
     }
 }

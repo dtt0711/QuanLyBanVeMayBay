@@ -1,7 +1,7 @@
-using BanVeMayBay.BUS;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.BUS;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.GUI;
+namespace QuanLyBanVeMayBay.GUI;
 
 public partial class FrmHangHangKhong : Form
 {
@@ -19,57 +19,71 @@ public partial class FrmHangHangKhong : Form
         btnDocDSHHK_Click(sender, e);
     }
 
-    private void btnDocDSHHK_Click(object sender, EventArgs e)
+    private void NapDong(HangHangKhongDTO hhk)
     {
-        HangHangKhongBUS bus = new HangHangKhongBUS();
-        ds = bus.DocDSHHK();
+        int n = lvDSHHK.Items.Count;
+        lvDSHHK.Items.Add(hhk.MaHHK);
+        lvDSHHK.Items[n].SubItems.Add(hhk.TenHang);
+    }
+
+    private void HienThi(List<HangHangKhongDTO> dsMoi)
+    {
+        ds = dsMoi;
         lvDSHHK.Items.Clear();
         foreach (HangHangKhongDTO hhk in ds)
-        {
-            int n = lvDSHHK.Items.Count;
-            lvDSHHK.Items.Add(hhk.MaHHK);
-            lvDSHHK.Items[n].SubItems.Add(hhk.TenHang);
-        }
+            NapDong(hhk);
+        thanhTim.HienSoDong(ds.Count);
+    }
+
+    private void btnDocDSHHK_Click(object sender, EventArgs e)
+    {
+        HienThi(new HangHangKhongBUS().DocDSHHK());
     }
 
     private void btnThem_Click(object sender, EventArgs e)
     {
         HangHangKhongDTO hhk = new HangHangKhongDTO(txtMaHHK.Text, txtTenHang.Text);
         HangHangKhongBUS bus = new HangHangKhongBUS();
-        bus.Them(hhk);
-        ds.Add(hhk);
-        int n = lvDSHHK.Items.Count;
-        lvDSHHK.Items.Add(hhk.MaHHK);
-        lvDSHHK.Items[n].SubItems.Add(hhk.TenHang);
+        if (txtMaHHK.Text.Trim() == "")
+        {
+            MessageBox.Show("Nhập mã trước khi thêm.");
+            return;
+        }
+        if (bus.TrungMa(txtMaHHK.Text))
+        {
+            MessageBox.Show("Mã " + txtMaHHK.Text + " đã tồn tại.");
+            return;
+        }
+        string loi = bus.KiemTra(hhk);
+        if (loi != "")
+        {
+            MessageBox.Show(loi);
+            return;
+        }
+        if (!bus.Them(hhk))
+            return;
+        btnDocDSHHK_Click(sender, e);
     }
 
     private void btnSua_Click(object sender, EventArgs e)
     {
         HangHangKhongDTO hhk = new HangHangKhongDTO(txtMaHHK.Text, txtTenHang.Text);
         HangHangKhongBUS bus = new HangHangKhongBUS();
-        bus.Sua(hhk);
-        ds = bus.DocDSHHK();
-        lvDSHHK.Items.Clear();
-        foreach (HangHangKhongDTO h in ds)
+        string loi = bus.KiemTra(hhk);
+        if (loi != "")
         {
-            int n = lvDSHHK.Items.Count;
-            lvDSHHK.Items.Add(h.MaHHK);
-            lvDSHHK.Items[n].SubItems.Add(h.TenHang);
+            MessageBox.Show(loi);
+            return;
         }
+        bus.Sua(hhk);
+        HienThi(bus.DocDSHHK());
     }
 
     private void btnXoa_Click(object sender, EventArgs e)
     {
         HangHangKhongBUS bus = new HangHangKhongBUS();
         bus.Xoa(txtMaHHK.Text);
-        ds = bus.DocDSHHK();
-        lvDSHHK.Items.Clear();
-        foreach (HangHangKhongDTO h in ds)
-        {
-            int n = lvDSHHK.Items.Count;
-            lvDSHHK.Items.Add(h.MaHHK);
-            lvDSHHK.Items[n].SubItems.Add(h.TenHang);
-        }
+        HienThi(bus.DocDSHHK());
     }
 
     private void btnLamMoi_Click(object sender, EventArgs e)
@@ -84,6 +98,22 @@ public partial class FrmHangHangKhong : Form
     {
         MayBayBUS bus = new MayBayBUS();
         new FrmXemDS("Máy bay của hãng " + txtMaHHK.Text, bus.DocTheoHHK(txtMaHHK.Text)).ShowDialog();
+    }
+
+    private void thanhTim_Tim(object sender, EventArgs e)
+    {
+        HienThi(new HangHangKhongBUS().TimKiem(thanhTim.TuKhoa));
+    }
+
+    private void thanhTim_TimNangCao(object sender, EventArgs e)
+    {
+        if (new FrmTimNangCao(typeof(HangHangKhongDTO), Text).ShowDialog(this) == DialogResult.OK)
+            HienThi(new HangHangKhongBUS().TimNangCao(FrmTimNangCao.DieuKien));
+    }
+
+    private void thanhTim_TatCa(object sender, EventArgs e)
+    {
+        btnDocDSHHK_Click(sender, e);
     }
 
     private void lvDSHHK_SelectedIndexChanged(object sender, EventArgs e)

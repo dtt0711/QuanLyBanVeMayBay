@@ -1,41 +1,47 @@
 using MySql.Data.MySqlClient;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.DAO;
+namespace QuanLyBanVeMayBay.DAO;
 
 public class HanhKhachDAO
 {
+    MySqlConnection connection = MyConnection.GetConnection();
+
+    public HanhKhachDAO()
+    {
+        MyConnection.Mo(connection);
+    }
+
+    private HanhKhachDTO DocDong(MySqlDataReader reader)
+    {
+        string ma = reader.GetString(0);
+        string hoTen = reader.GetString("HoTen");
+        DateTime ngaySinh = reader.IsDBNull(reader.GetOrdinal("NgaySinh")) ? DateTime.MinValue : reader.GetDateTime("NgaySinh");
+        string cccd = reader.IsDBNull(reader.GetOrdinal("CCCD")) ? "" : reader.GetString("CCCD");
+        string gioiTinh = reader.IsDBNull(reader.GetOrdinal("GioiTinh")) ? "" : reader.GetString("GioiTinh");
+        string maKH = reader.GetString("MaKH");
+        string loaiHK = reader.IsDBNull(reader.GetOrdinal("LoaiHK")) ? "" : reader.GetString("LoaiHK");
+        return new HanhKhachDTO(ma, hoTen, ngaySinh, cccd, gioiTinh, maKH, loaiHK);
+    }
+
     public List<HanhKhachDTO> DocDSHK()
     {
         List<HanhKhachDTO> dshk = new List<HanhKhachDTO>();
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string query = "SELECT MaHK,HoTen,NgaySinh,CCCD,GioiTinh,MaKH,LoaiKH FROM HanhKhach";
+            string query = "SELECT MaHK,HoTen,NgaySinh,CCCD,GioiTinh,MaKH,LoaiHK FROM HanhKhach";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string ma = reader.GetString(0);
-                string hoTen = reader.GetString("HoTen");
-                DateTime ngaySinh = reader.GetDateTime("NgaySinh");
-                string cccd = reader.GetString("CCCD");
-                string gioiTinh = reader.GetString("GioiTinh");
-                string maKH = reader.GetString("MaKH");
-                string loaiKH = reader.GetString("LoaiKH");
-                HanhKhachDTO hk = new HanhKhachDTO(ma, hoTen, ngaySinh, cccd, gioiTinh, maKH, loaiKH);
+                HanhKhachDTO hk = DocDong(reader);
                 dshk.Add(hk);//add to arraylist dshk
             }
             reader.Close();
         }
         catch
         {
-            throw new Exception("Lỗi đọc thông tin hành khách!");
-        }
-        finally
-        {
-            connection.Close();
+            MessageBox.Show("Lỗi đọc thông tin hành khách!");
         }
         return dshk;
     }
@@ -43,109 +49,70 @@ public class HanhKhachDAO
     public List<HanhKhachDTO> DocTheoKH(string maCha)
     {
         List<HanhKhachDTO> dshk = new List<HanhKhachDTO>();
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string query = "SELECT MaHK,HoTen,NgaySinh,CCCD,GioiTinh,MaKH,LoaiKH FROM HanhKhach WHERE MaKH='" + maCha + "'";
+            string query = "SELECT MaHK,HoTen,NgaySinh,CCCD,GioiTinh,MaKH,LoaiHK FROM HanhKhach WHERE MaKH='" + maCha + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string ma = reader.GetString(0);
-                string hoTen = reader.GetString("HoTen");
-                DateTime ngaySinh = reader.GetDateTime("NgaySinh");
-                string cccd = reader.GetString("CCCD");
-                string gioiTinh = reader.GetString("GioiTinh");
-                string maKH = reader.GetString("MaKH");
-                string loaiKH = reader.GetString("LoaiKH");
-                HanhKhachDTO hk = new HanhKhachDTO(ma, hoTen, ngaySinh, cccd, gioiTinh, maKH, loaiKH);
+                HanhKhachDTO hk = DocDong(reader);
                 dshk.Add(hk);//add to arraylist dshk
             }
             reader.Close();
         }
         catch
         {
-            throw new Exception("Lỗi đọc hành khách theo mã liên quan!");
-        }
-        finally
-        {
-            connection.Close();
+            MessageBox.Show("Lỗi đọc hành khách theo khách hàng!");
         }
         return dshk;
     }
 
-    public void Them(HanhKhachDTO hk)
+    public bool Them(HanhKhachDTO hk)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = hk.MaHK;
-            string hoTen = hk.HoTen;
-            string ngaySinh = hk.NgaySinh.ToString("yyyy-MM-dd");
-            string cccd = hk.CCCD;
-            string gioiTinh = hk.GioiTinh;
-            string maKH = hk.MaKH;
-            string loaiKH = hk.LoaiKH;
-            string query = "INSERT INTO HanhKhach(MaHK,HoTen,NgaySinh,CCCD,GioiTinh,MaKH,LoaiKH) VALUES ('" + ma + "','" + hoTen + "','" + ngaySinh + "','" + cccd + "','" + gioiTinh + "','" + maKH + "','" + loaiKH + "')";
+            string ngaySinh = hk.NgaySinh == DateTime.MinValue ? "NULL" : "'" + hk.NgaySinh.ToString("yyyy-MM-dd") + "'";
+            string cccd = string.IsNullOrEmpty(hk.CCCD) ? "NULL" : "'" + hk.CCCD + "'";
+            string gioiTinh = string.IsNullOrEmpty(hk.GioiTinh) ? "NULL" : "'" + hk.GioiTinh + "'";
+            string loaiHK = string.IsNullOrEmpty(hk.LoaiKH) ? "NULL" : "'" + hk.LoaiKH + "'";
+            string query = "INSERT INTO HanhKhach VALUES ('" + hk.MaHK
+                + "','" + hk.HoTen + "'," + ngaySinh + "," + cccd
+                + "," + gioiTinh + ",'" + hk.MaKH + "'," + loaiHK + ")";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi ghi thông tin hành khách!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi ghi thông tin hành khách!"); return false; }
     }
 
-    public void Sua(HanhKhachDTO hk)
+    public bool Sua(HanhKhachDTO hk)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
-            string ma = hk.MaHK;
-            string hoTen = hk.HoTen;
-            string ngaySinh = hk.NgaySinh.ToString("yyyy-MM-dd");
-            string cccd = hk.CCCD;
-            string gioiTinh = hk.GioiTinh;
-            string maKH = hk.MaKH;
-            string loaiKH = hk.LoaiKH;
-            string query = "UPDATE HanhKhach SET HoTen='" + hoTen + "', NgaySinh='" + ngaySinh + "', CCCD='" + cccd + "', GioiTinh='" + gioiTinh + "', MaKH='" + maKH + "', LoaiKH='" + loaiKH + "' WHERE MaHK='" + ma + "'";
+            string ngaySinh = hk.NgaySinh == DateTime.MinValue ? "NULL" : "'" + hk.NgaySinh.ToString("yyyy-MM-dd") + "'";
+            string cccd = string.IsNullOrEmpty(hk.CCCD) ? "NULL" : "'" + hk.CCCD + "'";
+            string gioiTinh = string.IsNullOrEmpty(hk.GioiTinh) ? "NULL" : "'" + hk.GioiTinh + "'";
+            string loaiHK = string.IsNullOrEmpty(hk.LoaiKH) ? "NULL" : "'" + hk.LoaiKH + "'";
+            string query = "UPDATE HanhKhach SET HoTen='" + hk.HoTen + "',NgaySinh=" + ngaySinh
+                + ",CCCD=" + cccd + ",GioiTinh=" + gioiTinh + ",MaKH='" + hk.MaKH
+                + "',LoaiHK=" + loaiHK + " WHERE MaHK='" + hk.MaHK + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi sửa thông tin hành khách!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi cập nhật hành khách!"); return false; }
     }
 
-    public void Xoa(string ma)
+    public bool Xoa(string ma)
     {
-        MySqlConnection connection = MyConnection.GetConnection();
         try
         {
-            connection.Open();
             string query = "DELETE FROM HanhKhach WHERE MaHK='" + ma + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
-            int r = command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
+            return true;
         }
-        catch
-        {
-            throw new Exception("Lỗi xóa thông tin hành khách!");
-        }
-        finally
-        {
-            connection.Close();
-        }
+        catch { MessageBox.Show("Lỗi xóa hành khách!"); return false; }
     }
 }

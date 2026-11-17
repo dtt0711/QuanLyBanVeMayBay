@@ -1,4 +1,4 @@
-namespace BanVeMayBay.GUI
+namespace QuanLyBanVeMayBay.GUI
 {
     partial class FrmHangHangKhong
     {
@@ -13,6 +13,7 @@ namespace BanVeMayBay.GUI
 
         private void InitializeComponent()
         {
+            thanhTim = new ThanhTimKiem();
             lvDSHHK = new ListView();
             colMaHang = new ColumnHeader();
             colTenHang = new ColumnHeader();
@@ -164,10 +165,15 @@ namespace BanVeMayBay.GUI
             // 
             // FrmHangHangKhong
             // 
+            thanhTim.Name = "thanhTim";
+            thanhTim.Tim += thanhTim_Tim;
+            thanhTim.TimNangCao += thanhTim_TimNangCao;
+            thanhTim.TatCa += thanhTim_TatCa;
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(960, 620);
             Controls.Add(lvDSHHK);
+            Controls.Add(thanhTim);
             Controls.Add(pnl);
             Name = "FrmHangHangKhong";
             StartPosition = FormStartPosition.CenterScreen;
@@ -193,5 +199,6 @@ namespace BanVeMayBay.GUI
         private Button btnLamMoi;
         private Button btnDocDSHHK;
         private Button btnXemMB;
+        private ThanhTimKiem thanhTim;
     }
 }

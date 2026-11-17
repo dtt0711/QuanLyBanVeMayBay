@@ -1,7 +1,7 @@
-using BanVeMayBay.BUS;
-using BanVeMayBay.DTO;
+using QuanLyBanVeMayBay.BUS;
+using QuanLyBanVeMayBay.DTO;
 
-namespace BanVeMayBay.GUI;
+namespace QuanLyBanVeMayBay.GUI;
 
 public partial class FrmMayBay : Form
 {
@@ -10,7 +10,8 @@ public partial class FrmMayBay : Form
     public FrmMayBay()
     {
         InitializeComponent();
-        cboMaHHK.Format += (s, e) => { if (e.ListItem is HangHangKhongDTO p) e.Value = p.MaHHK + " - " + p.TenHang; };
+        cboMaHHK.Format += (s, e) => { if (e.ListItem is HangHangKhongDTO p) e.Value = p.TenHang == "" ? p.MaHHK : p.MaHHK + " - " + p.TenHang; };
+        GiaoDien.ThemNutChon(cboMaHHK, "Chọn hãng hàng không");
     }
 
     private void FrmMayBay_Load(object sender, EventArgs e)
@@ -23,80 +24,76 @@ public partial class FrmMayBay : Form
 
     private void NapCombo()
     {
-        cboMaHHK.DataSource = new HangHangKhongBUS().DocDSHHK();
+        List<HangHangKhongDTO> hang = new List<HangHangKhongDTO>();
+        hang.Add(new HangHangKhongDTO { MaHHK = "Chọn hãng hàng không" });
+        hang.AddRange(new HangHangKhongBUS().DocDSHHK());
+        cboMaHHK.DataSource = hang;
         cboMaHHK.DisplayMember = "MaHHK";
         cboMaHHK.ValueMember = "MaHHK";
-        cboMaHHK.SelectedIndex = -1;
+        cboMaHHK.SelectedIndex = 0;
+    }
+
+    private void NapDong(MayBayDTO mb)
+    {
+        int n = lvDSMB.Items.Count;
+        lvDSMB.Items.Add(mb.MaMayBay);
+        lvDSMB.Items[n].SubItems.Add(mb.MaHHK);
     }
 
     private void btnDocDSMB_Click(object sender, EventArgs e)
     {
-        MayBayBUS bus = new MayBayBUS();
-        ds = bus.DocDSMB();
-        lvDSMB.Items.Clear();
-        foreach (MayBayDTO mb in ds)
-        {
-            int n = lvDSMB.Items.Count;
-            lvDSMB.Items.Add(mb.MaMayBay);
-            lvDSMB.Items[n].SubItems.Add(mb.MaHHK);
-            lvDSMB.Items[n].SubItems.Add(mb.LoaiMayBay);
-            lvDSMB.Items[n].SubItems.Add(mb.SoGhe.ToString());
-        }
+        HienThi(new MayBayBUS().DocDSMB());
     }
 
     private void btnThem_Click(object sender, EventArgs e)
     {
-        MayBayDTO mb = new MayBayDTO(txtMaMayBay.Text, cboMaHHK.SelectedValue.ToString(), txtLoaiMayBay.Text, int.Parse(txtSoGhe.Text));
+        if (cboMaHHK.SelectedValue == null || cboMaHHK.SelectedValue.ToString().StartsWith("Chọn "))
+        {
+            MessageBox.Show("Chọn hãng hàng không.");
+            return;
+        }
+        MayBayDTO mb = new MayBayDTO(txtMaMayBay.Text, cboMaHHK.SelectedValue.ToString(), "", 0);
         MayBayBUS bus = new MayBayBUS();
-        bus.Them(mb);
-        ds.Add(mb);
-        int n = lvDSMB.Items.Count;
-        lvDSMB.Items.Add(mb.MaMayBay);
-        lvDSMB.Items[n].SubItems.Add(mb.MaHHK);
-        lvDSMB.Items[n].SubItems.Add(mb.LoaiMayBay);
-        lvDSMB.Items[n].SubItems.Add(mb.SoGhe.ToString());
+        if (txtMaMayBay.Text.Trim() == "")
+        {
+            MessageBox.Show("Nhập mã trước khi thêm.");
+            return;
+        }
+        if (bus.TrungMa(txtMaMayBay.Text))
+        {
+            MessageBox.Show("Mã " + txtMaMayBay.Text + " đã tồn tại.");
+            return;
+        }
+        if (!bus.Them(mb))
+            return;
+        btnDocDSMB_Click(sender, e);
     }
 
     private void btnSua_Click(object sender, EventArgs e)
     {
-        MayBayDTO mb = new MayBayDTO(txtMaMayBay.Text, cboMaHHK.SelectedValue.ToString(), txtLoaiMayBay.Text, int.Parse(txtSoGhe.Text));
+        if (cboMaHHK.SelectedValue == null || cboMaHHK.SelectedValue.ToString().StartsWith("Chọn "))
+        {
+            MessageBox.Show("Chọn hãng hàng không.");
+            return;
+        }
+        MayBayDTO mb = new MayBayDTO(txtMaMayBay.Text, cboMaHHK.SelectedValue.ToString(), "", 0);
         MayBayBUS bus = new MayBayBUS();
         bus.Sua(mb);
-        ds = bus.DocDSMB();
-        lvDSMB.Items.Clear();
-        foreach (MayBayDTO m in ds)
-        {
-            int n = lvDSMB.Items.Count;
-            lvDSMB.Items.Add(m.MaMayBay);
-            lvDSMB.Items[n].SubItems.Add(m.MaHHK);
-            lvDSMB.Items[n].SubItems.Add(m.LoaiMayBay);
-            lvDSMB.Items[n].SubItems.Add(m.SoGhe.ToString());
-        }
+        HienThi(bus.DocDSMB());
     }
 
     private void btnXoa_Click(object sender, EventArgs e)
     {
         MayBayBUS bus = new MayBayBUS();
         bus.Xoa(txtMaMayBay.Text);
-        ds = bus.DocDSMB();
-        lvDSMB.Items.Clear();
-        foreach (MayBayDTO m in ds)
-        {
-            int n = lvDSMB.Items.Count;
-            lvDSMB.Items.Add(m.MaMayBay);
-            lvDSMB.Items[n].SubItems.Add(m.MaHHK);
-            lvDSMB.Items[n].SubItems.Add(m.LoaiMayBay);
-            lvDSMB.Items[n].SubItems.Add(m.SoGhe.ToString());
-        }
+        HienThi(bus.DocDSMB());
     }
 
     private void btnLamMoi_Click(object sender, EventArgs e)
     {
         lvDSMB.SelectedIndices.Clear();
         txtMaMayBay.Clear();
-        cboMaHHK.SelectedIndex = -1;
-        txtLoaiMayBay.Clear();
-        txtSoGhe.Clear();
+        cboMaHHK.SelectedIndex = 0;
         txtMaMayBay.Enabled = true;
     }
 
@@ -106,6 +103,31 @@ public partial class FrmMayBay : Form
         new FrmXemDS("Chuyến bay của máy bay " + txtMaMayBay.Text, bus.DocTheoMayBay(txtMaMayBay.Text)).ShowDialog();
     }
 
+    private void HienThi(List<MayBayDTO> dsMoi)
+    {
+        ds = dsMoi;
+        lvDSMB.Items.Clear();
+        foreach (MayBayDTO x in ds)
+            NapDong(x);
+        thanhTim.HienSoDong(ds.Count);
+    }
+
+    private void thanhTim_Tim(object sender, EventArgs e)
+    {
+        HienThi(new MayBayBUS().TimKiem(thanhTim.TuKhoa));
+    }
+
+    private void thanhTim_TimNangCao(object sender, EventArgs e)
+    {
+        if (new FrmTimNangCao(typeof(MayBayDTO), Text).ShowDialog(this) == DialogResult.OK)
+            HienThi(new MayBayBUS().TimNangCao(FrmTimNangCao.DieuKien));
+    }
+
+    private void thanhTim_TatCa(object sender, EventArgs e)
+    {
+        HienThi(new MayBayBUS().DocDSMB());
+    }
+
     private void lvDSMB_SelectedIndexChanged(object sender, EventArgs e)
     {
         if (lvDSMB.SelectedIndices.Count == 0) return;
@@ -113,8 +135,6 @@ public partial class FrmMayBay : Form
         if (i >= ds.Count) return;
         txtMaMayBay.Text = ds[i].MaMayBay;
         cboMaHHK.SelectedValue = ds[i].MaHHK;
-        txtLoaiMayBay.Text = ds[i].LoaiMayBay;
-        txtSoGhe.Text = ds[i].SoGhe.ToString();
         txtMaMayBay.Enabled = false;
     }
 }
