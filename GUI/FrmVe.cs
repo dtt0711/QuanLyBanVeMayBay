@@ -25,6 +25,9 @@ public partial class FrmVe : Form
         GiaoDien.KhoaO(txtDonGiaVe);
         cboMaGhe.SelectedIndexChanged += cboMaGhe_SelectedIndexChanged;
         cboMaDV.SelectedIndexChanged += cboMaDV_SelectedIndexChanged;
+        // Trả vé = hủy vé (đổi trạng thái), không xóa khỏi CSDL
+        btnXoa.Text = "Hủy vé";
+        lvDSVe.Columns.Add("Trạng thái", 100);
     }
 
     private void FrmVe_Load(object sender, EventArgs e)
@@ -125,6 +128,9 @@ public partial class FrmVe : Form
         lvDSVe.Items[n].SubItems.Add(ve.MaDV);
         lvDSVe.Items[n].SubItems.Add(ve.DonGiaVe.ToString("N0"));
         lvDSVe.Items[n].SubItems.Add(ve.Ngay.ToString("dd/MM/yyyy HH:mm"));
+        lvDSVe.Items[n].SubItems.Add(ve.TrangThai);
+        if (ve.TrangThai == TrangThaiBUS.DaHuy)
+            lvDSVe.Items[n].ForeColor = Color.Gray;
     }
 
     private void HienThi(List<VeDTO> dsMoi)
@@ -193,7 +199,15 @@ public partial class FrmVe : Form
     private void btnXoa_Click(object sender, EventArgs e)
     {
         VeBUS bus = new VeBUS();
-        bus.Xoa(txtMaVe.Text);
+        string loi = bus.KiemTraHuy(txtMaVe.Text);
+        if (loi != "")
+        {
+            MessageBox.Show(loi);
+            return;
+        }
+        if (MessageBox.Show("Hủy vé " + txtMaVe.Text + "? Ghế sẽ được nhả ra để bán lại.", "Hủy vé", MessageBoxButtons.YesNo) != DialogResult.Yes)
+            return;
+        bus.Huy(txtMaVe.Text);
         HienThi(bus.DocDSVe());
     }
 

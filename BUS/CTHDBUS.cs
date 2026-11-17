@@ -40,7 +40,7 @@ public class CTHDBUS
             return kq;
         CTHDDAO dao = new CTHDDAO();
         foreach (VeDTO v in new VeBUS().DocTheoDatVe(hd.MaDV))
-            if (dao.DaLapHoaDon(v.MaVe) == "")
+            if (v.TrangThai != TrangThaiBUS.DaHuy && dao.DaLapHoaDon(v.MaVe) == "")
                 kq.Add(v);
         return kq;
     }
@@ -52,11 +52,25 @@ public class CTHDBUS
         VeDTO ve = new VeBUS().timKiem(maVe);
         if (hd == null || ve == null)
             return "Không tìm thấy hóa đơn hoặc vé.";
+        string khoa = KiemTraSuaCT(maHD);
+        if (khoa != "")
+            return khoa;
+        if (ve.TrangThai == TrangThaiBUS.DaHuy)
+            return "Vé " + maVe + " đã hủy.";
         if (ve.MaDV != hd.MaDV)
             return "Vé " + maVe + " thuộc phiếu đặt " + ve.MaDV + ", không thuộc phiếu đặt " + hd.MaDV + " của hóa đơn này.";
         string daLap = new CTHDDAO().DaLapHoaDon(maVe);
         if (daLap != "")
             return "Vé " + maVe + " đã được tính tiền ở hóa đơn " + daLap + ".";
+        return "";
+    }
+
+    // Hóa đơn đã thanh toán thì không thêm, bớt chi tiết
+    public string KiemTraSuaCT(string maHD)
+    {
+        HoaDonDTO hd = new HoaDonBUS().timKiem(maHD);
+        if (hd != null && hd.TrangThai == TrangThaiBUS.DaThanhToan)
+            return "Hóa đơn " + maHD + " đã thanh toán, không sửa chi tiết được.";
         return "";
     }
 

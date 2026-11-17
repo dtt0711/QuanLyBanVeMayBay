@@ -69,16 +69,33 @@ public class VeBUS
         return true;
     }
 
-    public bool Xoa(string ma)
+    // Hủy (trả) vé: đổi trạng thái, không xóa khỏi CSDL
+    public bool Huy(string ma)
     {
-        DocDSVe();
         VeDAO dao = new VeDAO();
-        if (!dao.Xoa(ma))
+        if (!dao.Huy(ma))
             return false;
+        LamMoiDS();
         ChuyenBayBUS.LamMoiDS();
         DatVeBUS.LamMoiDS();
-        dsve.Remove(timKiem(ma));
+        HoaDonBUS.LamMoiDS();
         return true;
+    }
+
+    public string KiemTraHuy(string ma)
+    {
+        VeDTO ve = timKiem(ma);
+        if (ve == null)
+            return "Chọn vé cần hủy.";
+        if (ve.TrangThai == TrangThaiBUS.DaHuy)
+            return "Vé " + ma + " đã hủy rồi.";
+        DatVeDTO dv = new DatVeBUS().timKiem(ve.MaDV);
+        if (dv != null && dv.TrangThai == TrangThaiBUS.DaThanhToan)
+            return "Phiếu đặt " + ve.MaDV + " đã thanh toán, không hủy vé được (hoàn tiền nằm ngoài phạm vi đề tài).";
+        ChuyenBayDTO cb = new ChuyenBayBUS().timKiem(ve.MaChuyenBay);
+        if (cb != null && cb.NgayKhoiHanh <= DateTime.Now)
+            return "Chuyến " + ve.MaChuyenBay + " đã khởi hành, không hủy vé được.";
+        return "";
     }
 
     // Đơn giá vé không cho nhập: giá chuyến bay (giá hạng Phổ thông) x hệ số của hạng vé,
@@ -108,12 +125,18 @@ public class VeBUS
     public string KiemTra(VeDTO x, bool laThem)
     {
         VeDTO cu = laThem ? null : timKiem(x.MaVe);
+        if (cu != null && cu.TrangThai == TrangThaiBUS.DaHuy)
+            return "Vé " + x.MaVe + " đã hủy, không sửa được.";
         // 1. Vé luôn được xuất từ một phiếu đặt, và phiếu đặt phải của đúng chuyến bay
         if (x.MaDV == "")
             return "Chọn phiếu đặt vé. Vé phải thuộc một phiếu đặt.";
         DatVeDTO dv = new DatVeBUS().timKiem(x.MaDV);
         if (dv == null || dv.MaChuyenBay != x.MaChuyenBay)
             return "Phiếu đặt " + x.MaDV + " không phải của chuyến " + x.MaChuyenBay + ".";
+        if (dv.TrangThai == TrangThaiBUS.DaThanhToan)
+            return "Phiếu đặt " + x.MaDV + " đã thanh toán, không thêm hay sửa vé được. Hãy lập phiếu đặt mới.";
+        if (dv.TrangThai == TrangThaiBUS.DaHuy)
+            return "Phiếu đặt " + x.MaDV + " đã hủy.";
         // 2. Hành khách phải thuộc khách hàng đứng tên phiếu đặt
         HanhKhachDTO hk = new HanhKhachBUS().timKiem(x.MaHK);
         if (hk == null || hk.MaKH != dv.MaKH)
@@ -132,7 +155,7 @@ public class VeBUS
         // 4. Một ghế chỉ bán 1 lần, một hành khách chỉ có 1 vé trên một chuyến
         foreach (VeDTO v in DocDSVe())
         {
-            if (v.MaVe == x.MaVe || v.MaChuyenBay != x.MaChuyenBay)
+            if (v.MaVe == x.MaVe || v.MaChuyenBay != x.MaChuyenBay || v.TrangThai == TrangThaiBUS.DaHuy)
                 continue;
             if (v.MaGhe == x.MaGhe)
                 return "Ghế " + x.MaGhe + " của chuyến " + x.MaChuyenBay + " đã bán (vé " + v.MaVe + ").";
@@ -143,7 +166,7 @@ public class VeBUS
         if (cu == null || cu.MaDV != x.MaDV)
         {
             int soVeToiDa = (int)ThamSoBUS.LayGiaTri("SO_VE_TOI_DA", 9);
-            if (DocTheoDatVe(x.MaDV).Count >= soVeToiDa)
+            if (DocTheoDatVe(x.MaDV).Count(v => v.TrangThai != TrangThaiBUS.DaHuy) >= soVeToiDa)
                 return "Mỗi lần đặt chỉ được tối đa " + soVeToiDa + " vé.";
         }
         return "";
@@ -159,7 +182,8 @@ public class VeBUS
                 || TimKiemBUS.Chua(x.MaHV, tuKhoa)
                 || TimKiemBUS.Chua(x.MaGhe, tuKhoa)
                 || TimKiemBUS.Chua(x.MaHK, tuKhoa)
-                || TimKiemBUS.Chua(x.MaDV, tuKhoa))
+                || TimKiemBUS.Chua(x.MaDV, tuKhoa)
+                || TimKiemBUS.Chua(x.TrangThai, tuKhoa))
                 kq.Add(x);
         return kq;
     }

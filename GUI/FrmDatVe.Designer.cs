@@ -45,7 +45,7 @@ namespace QuanLyBanVeMayBay.GUI
             lblGiamGia = new Label();
             txtGiamGia = new TextBox();
             lblTrangThai = new Label();
-            txtTrangThai = new TextBox();
+            cboTrangThai = new ComboBox();
             btnThem = new Button();
             btnSua = new Button();
             btnXoa = new Button();
@@ -98,7 +98,7 @@ namespace QuanLyBanVeMayBay.GUI
             pnl.Controls.Add(lblGiamGia);
             pnl.Controls.Add(txtGiamGia);
             pnl.Controls.Add(lblTrangThai);
-            pnl.Controls.Add(txtTrangThai);
+            pnl.Controls.Add(cboTrangThai);
             pnl.Controls.Add(btnThem);
             pnl.Controls.Add(btnSua);
             pnl.Controls.Add(btnXoa);
@@ -180,10 +180,10 @@ namespace QuanLyBanVeMayBay.GUI
             lblTrangThai.Location = new Point(20, 162);
             lblTrangThai.Name = "lblTrangThai";
             lblTrangThai.Text = "Trạng thái:";
-            txtTrangThai.Location = new Point(130, 159);
-            txtTrangThai.Name = "txtTrangThai";
-            txtTrangThai.Size = new Size(280, 23);
-            txtTrangThai.Text = "Chờ thanh toán";
+            cboTrangThai.Location = new Point(130, 159);
+            cboTrangThai.Name = "cboTrangThai";
+            cboTrangThai.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboTrangThai.Size = new Size(280, 23);
             btnThem.Location = new Point(20, 202);
             btnThem.Name = "btnThem";
             btnThem.Size = new Size(90, 30);
@@ -241,6 +241,7 @@ namespace QuanLyBanVeMayBay.GUI
             lvDSVeCon.Columns.Add("Ghế", 100);
             lvDSVeCon.Columns.Add("Hành khách", 110);
             lvDSVeCon.Columns.Add("Đơn giá", 120);
+            lvDSVeCon.Columns.Add("Trạng thái", 100);
             lvDSVeCon.Dock = DockStyle.Fill;
             lvDSVeCon.FullRowSelect = true;
             lvDSVeCon.GridLines = true;
@@ -291,7 +292,7 @@ namespace QuanLyBanVeMayBay.GUI
         private Label lblGiamGia;
         private TextBox txtGiamGia;
         private Label lblTrangThai;
-        private TextBox txtTrangThai;
+        private ComboBox cboTrangThai;
         private Button btnThem;
         private Button btnSua;
         private Button btnXoa;

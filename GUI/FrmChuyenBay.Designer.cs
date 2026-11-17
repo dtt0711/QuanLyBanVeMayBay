@@ -47,7 +47,7 @@ namespace QuanLyBanVeMayBay.GUI
             lblGiaVe = new Label();
             txtGiaVe = new TextBox();
             lblTrangThai = new Label();
-            txtTrangThai = new TextBox();
+            cboTrangThai = new ComboBox();
             btnThem = new Button();
             btnSua = new Button();
             btnXoa = new Button();
@@ -103,7 +103,7 @@ namespace QuanLyBanVeMayBay.GUI
             pnl.Controls.Add(lblGiaVe);
             pnl.Controls.Add(txtGiaVe);
             pnl.Controls.Add(lblTrangThai);
-            pnl.Controls.Add(txtTrangThai);
+            pnl.Controls.Add(cboTrangThai);
             pnl.Controls.Add(btnThem);
             pnl.Controls.Add(btnSua);
             pnl.Controls.Add(btnXoa);
@@ -217,11 +217,11 @@ namespace QuanLyBanVeMayBay.GUI
             lblTrangThai.Location = new Point(480, 198);
             lblTrangThai.Name = "lblTrangThai";
             lblTrangThai.Text = "Trạng thái:";
-            txtTrangThai.Location = new Point(590, 195);
-            txtTrangThai.Name = "txtTrangThai";
-            txtTrangThai.Size = new Size(280, 23);
-            txtTrangThai.TabIndex = 11;
-            txtTrangThai.Text = "Chưa khởi hành";
+            cboTrangThai.Location = new Point(590, 195);
+            cboTrangThai.Name = "cboTrangThai";
+            cboTrangThai.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboTrangThai.Size = new Size(280, 23);
+            cboTrangThai.TabIndex = 11;
             btnThem.Location = new Point(20, 240);
             btnThem.Name = "btnThem";
             btnThem.Size = new Size(90, 30);
@@ -317,7 +317,7 @@ namespace QuanLyBanVeMayBay.GUI
         private Label lblGiaVe;
         private TextBox txtGiaVe;
         private Label lblTrangThai;
-        private TextBox txtTrangThai;
+        private ComboBox cboTrangThai;
         private Button btnThem;
         private Button btnSua;
         private Button btnXoa;

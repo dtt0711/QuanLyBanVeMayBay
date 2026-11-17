@@ -105,6 +105,7 @@ public class HoaDonDAO
             MySqlCommand command = new MySqlCommand(query, connection);
             command.ExecuteNonQuery();
             TinhTienDAO.HoaDon(connection, null, hd.MaHD);
+            TinhTienDAO.TrangThaiDatVe(connection, null, hd.MaDV);
             return true;
         }
         catch { MessageBox.Show("Lỗi ghi thông tin hóa đơn!"); return false; }
@@ -124,6 +125,7 @@ public class HoaDonDAO
             MySqlCommand command = new MySqlCommand(query, connection);
             command.ExecuteNonQuery();
             TinhTienDAO.HoaDon(connection, null, hd.MaHD);
+            TinhTienDAO.TrangThaiDatVe(connection, null, hd.MaDV);
             return true;
         }
         catch { MessageBox.Show("Lỗi cập nhật hóa đơn!"); return false; }
@@ -131,13 +133,25 @@ public class HoaDonDAO
 
     public bool Xoa(string ma)
     {
+        // Xóa hóa đơn (chỉ hóa đơn chưa thanh toán): xóa chi tiết trước rồi xóa hóa đơn, trong 1 transaction
+        MySqlTransaction tran = null;
         try
         {
-            string query = "DELETE FROM HoaDon WHERE MaHD='" + ma + "'";
-            MySqlCommand command = new MySqlCommand(query, connection);
-            command.ExecuteNonQuery();
+            tran = connection.BeginTransaction();
+            object maDV = new MySqlCommand("SELECT MaDV FROM HoaDon WHERE MaHD='" + ma + "'", connection, tran).ExecuteScalar();
+            new MySqlCommand("DELETE FROM ChiTietHoaDon WHERE MaHD='" + ma + "'", connection, tran).ExecuteNonQuery();
+            new MySqlCommand("DELETE FROM HoaDon WHERE MaHD='" + ma + "'", connection, tran).ExecuteNonQuery();
+            if (maDV != null)
+                TinhTienDAO.TrangThaiDatVe(connection, tran, maDV.ToString());
+            tran.Commit();
             return true;
         }
-        catch { MessageBox.Show("Lỗi xóa hóa đơn!"); return false; }
+        catch
+        {
+            if (tran != null)
+                tran.Rollback();
+            MessageBox.Show("Lỗi xóa hóa đơn!");
+            return false;
+        }
     }
 }

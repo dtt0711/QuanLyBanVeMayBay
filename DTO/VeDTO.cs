@@ -10,6 +10,7 @@ public class VeDTO
     public decimal DonGiaVe { get; set; }
     public DateTime Ngay { get; set; }
     public string MaDV { get; set; } = "";
+    public string TrangThai { get; set; } = "Hiệu lực";   // Hiệu lực / Đã hủy
 
     public VeDTO()
     {

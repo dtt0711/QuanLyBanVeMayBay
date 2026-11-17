@@ -5,11 +5,21 @@ namespace QuanLyBanVeMayBay.DAO;
 // Các câu lệnh tính lại những field tiền không cho người dùng nhập
 public static class TinhTienDAO
 {
+    // Trạng thái phiếu đặt đi theo hóa đơn: có hóa đơn đã thanh toán -> "Đã thanh toán",
+    // ngược lại "Chờ thanh toán" (phiếu đã hủy giữ nguyên)
+    public static void TrangThaiDatVe(MySqlConnection connection, MySqlTransaction tran, string maDV)
+    {
+        string query = "UPDATE DatVe d SET TrangThai=CASE WHEN d.TrangThai='Đã hủy' THEN 'Đã hủy' "
+            + "WHEN EXISTS(SELECT 1 FROM HoaDon h WHERE h.MaDV=d.MaDV AND h.TrangThai='Đã thanh toán') THEN 'Đã thanh toán' "
+            + "ELSE 'Chờ thanh toán' END WHERE d.MaDV='" + maDV + "'";
+        new MySqlCommand(query, connection, tran).ExecuteNonQuery();
+    }
+
     // DatVe.TongTien = tổng đơn giá các vé của phiếu đặt - giảm giá (không âm)
     public static void DatVe(MySqlConnection connection, MySqlTransaction tran, string maDV)
     {
         string query = "UPDATE DatVe SET TongTien=GREATEST((SELECT COALESCE(SUM(DonGiaVe),0) FROM Ve WHERE MaDV='" + maDV
-            + "')-GiamGia,0) WHERE MaDV='" + maDV + "'";
+            + "' AND TrangThai<>'Đã hủy')-GiamGia,0) WHERE MaDV='" + maDV + "'";
         new MySqlCommand(query, connection, tran).ExecuteNonQuery();
     }
 

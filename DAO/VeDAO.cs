@@ -12,25 +12,26 @@ public class VeDAO
         MyConnection.Mo(connection);
     }
 
+    private VeDTO DocDong(MySqlDataReader reader)
+    {
+        string maDV = reader.IsDBNull(reader.GetOrdinal("MaDV")) ? "" : reader.GetString("MaDV");
+        VeDTO ve = new VeDTO(reader.GetString(0), reader.GetString("MaChuyenBay"), reader.GetString("MaHV"), reader.GetString("MaGhe"),
+            reader.GetString("MaHK"), reader.GetDecimal("DonGiaVe"), reader.GetDateTime("Ngay"), maDV);
+        ve.TrangThai = reader.GetString("TrangThai");
+        return ve;
+    }
+
     public List<VeDTO> DocDSVe()
     {
         List<VeDTO> dsve = new List<VeDTO>();
         try
         {
-            string query = "SELECT MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV FROM Ve";
+            string query = "SELECT MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV,TrangThai FROM Ve";
             MySqlCommand command = new MySqlCommand(query, connection);
             using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string ma = reader.GetString(0);
-                string maChuyenBay = reader.GetString("MaChuyenBay");
-                string maHV = reader.GetString("MaHV");
-                string maGhe = reader.GetString("MaGhe");
-                string maHK = reader.GetString("MaHK");
-                decimal donGiaVe = reader.GetDecimal("DonGiaVe");
-                DateTime ngay = reader.GetDateTime("Ngay");
-                string maDV = reader.IsDBNull(reader.GetOrdinal("MaDV")) ? "" : reader.GetString("MaDV");
-                VeDTO ve = new VeDTO(ma, maChuyenBay, maHV, maGhe, maHK, donGiaVe, ngay, maDV);
+                VeDTO ve = DocDong(reader);
                 dsve.Add(ve);//add to arraylist dsve
             }
             reader.Close();
@@ -47,20 +48,12 @@ public class VeDAO
         List<VeDTO> dsve = new List<VeDTO>();
         try
         {
-            string query = "SELECT MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV FROM Ve WHERE MaChuyenBay='" + maCha + "'";
+            string query = "SELECT MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV,TrangThai FROM Ve WHERE MaChuyenBay='" + maCha + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
             using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string ma = reader.GetString(0);
-                string maChuyenBay = reader.GetString("MaChuyenBay");
-                string maHV = reader.GetString("MaHV");
-                string maGhe = reader.GetString("MaGhe");
-                string maHK = reader.GetString("MaHK");
-                decimal donGiaVe = reader.GetDecimal("DonGiaVe");
-                DateTime ngay = reader.GetDateTime("Ngay");
-                string maDV = reader.IsDBNull(reader.GetOrdinal("MaDV")) ? "" : reader.GetString("MaDV");
-                VeDTO ve = new VeDTO(ma, maChuyenBay, maHV, maGhe, maHK, donGiaVe, ngay, maDV);
+                VeDTO ve = DocDong(reader);
                 dsve.Add(ve);//add to arraylist dsve
             }
             reader.Close();
@@ -77,20 +70,12 @@ public class VeDAO
         List<VeDTO> dsve = new List<VeDTO>();
         try
         {
-            string query = "SELECT MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV FROM Ve WHERE MaDV='" + maCha + "'";
+            string query = "SELECT MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV,TrangThai FROM Ve WHERE MaDV='" + maCha + "'";
             MySqlCommand command = new MySqlCommand(query, connection);
             using MySqlDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                string ma = reader.GetString(0);
-                string maChuyenBay = reader.GetString("MaChuyenBay");
-                string maHV = reader.GetString("MaHV");
-                string maGhe = reader.GetString("MaGhe");
-                string maHK = reader.GetString("MaHK");
-                decimal donGiaVe = reader.GetDecimal("DonGiaVe");
-                DateTime ngay = reader.GetDateTime("Ngay");
-                string maDV = reader.IsDBNull(reader.GetOrdinal("MaDV")) ? "" : reader.GetString("MaDV");
-                VeDTO ve = new VeDTO(ma, maChuyenBay, maHV, maGhe, maHK, donGiaVe, ngay, maDV);
+                VeDTO ve = DocDong(reader);
                 dsve.Add(ve);//add to arraylist dsve
             }
             reader.Close();
@@ -105,16 +90,12 @@ public class VeDAO
     // Đọc chuyến bay và phiếu đặt hiện tại của vé (dùng khi sửa, xóa vé)
     private VeDTO DocVe(MySqlTransaction tran, string ma)
     {
-        string query = "SELECT MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV FROM Ve WHERE MaVe='" + ma + "'";
+        string query = "SELECT MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV,TrangThai FROM Ve WHERE MaVe='" + ma + "'";
         MySqlCommand command = new MySqlCommand(query, connection, tran);
         using MySqlDataReader reader = command.ExecuteReader();
         VeDTO ve = null;
         if (reader.Read())
-        {
-            string maDV = reader.IsDBNull(reader.GetOrdinal("MaDV")) ? "" : reader.GetString("MaDV");
-            ve = new VeDTO(reader.GetString(0), reader.GetString("MaChuyenBay"), reader.GetString("MaHV"),
-                reader.GetString("MaGhe"), reader.GetString("MaHK"), reader.GetDecimal("DonGiaVe"), reader.GetDateTime("Ngay"), maDV);
-        }
+            ve = DocDong(reader);
         reader.Close();
         return ve;
     }
@@ -129,7 +110,7 @@ public class VeDAO
             string donGiaVe = ve.DonGiaVe.ToString(System.Globalization.CultureInfo.InvariantCulture);
             string maDV = string.IsNullOrEmpty(ve.MaDV) ? "NULL" : "'" + ve.MaDV + "'";
             tran = connection.BeginTransaction();
-            string query = "INSERT INTO Ve VALUES ('" + ve.MaVe
+            string query = "INSERT INTO Ve(MaVe,MaChuyenBay,MaHV,MaGhe,MaHK,DonGiaVe,Ngay,MaDV) VALUES ('" + ve.MaVe
                 + "','" + ve.MaChuyenBay + "','" + ve.MaHV + "','" + ve.MaGhe + "','" + ve.MaHK
                 + "'," + donGiaVe + ",'" + ngay + "'," + maDV + ")";
             MySqlCommand command = new MySqlCommand(query, connection, tran);
@@ -187,22 +168,28 @@ public class VeDAO
         }
     }
 
-    // Trả vé: xóa vé, giảm SoVeDaBan của chuyến bay, tính lại TongTien của phiếu đặt
-    public bool Xoa(string ma)
+    // Hủy (trả) vé: không xóa mà đổi trạng thái sang "Đã hủy" để còn lịch sử. Ghế và hành khách được nhả ra
+    // (ràng buộc không trùng chỉ tính vé còn hiệu lực), giảm SoVeDaBan, tính lại tiền phiếu đặt,
+    // và bỏ vé khỏi hóa đơn chưa thanh toán nếu có.
+    public bool Huy(string ma)
     {
         MySqlTransaction tran = null;
         try
         {
             tran = connection.BeginTransaction();
             VeDTO cu = DocVe(tran, ma);
-            string query = "DELETE FROM Ve WHERE MaVe='" + ma + "'";
-            MySqlCommand command = new MySqlCommand(query, connection, tran);
-            command.ExecuteNonQuery();
-            if (cu != null)
+            string query = "UPDATE Ve SET TrangThai='Đã hủy' WHERE MaVe='" + ma + "' AND TrangThai<>'Đã hủy'";
+            if (new MySqlCommand(query, connection, tran).ExecuteNonQuery() == 1 && cu != null)
             {
                 TinhTienDAO.SoVeDaBan(connection, tran, cu.MaChuyenBay, -1);
-                if (cu.MaDV != "")
-                    TinhTienDAO.DatVe(connection, tran, cu.MaDV);
+                TinhTienDAO.DatVe(connection, tran, cu.MaDV);
+                query = "SELECT c.MaHD FROM ChiTietHoaDon c JOIN HoaDon h ON h.MaHD=c.MaHD WHERE c.MaVe='" + ma + "'";
+                object maHD = new MySqlCommand(query, connection, tran).ExecuteScalar();
+                if (maHD != null)
+                {
+                    new MySqlCommand("DELETE FROM ChiTietHoaDon WHERE MaVe='" + ma + "'", connection, tran).ExecuteNonQuery();
+                    TinhTienDAO.HoaDon(connection, tran, maHD.ToString());
+                }
             }
             tran.Commit();
             return true;
@@ -211,7 +198,7 @@ public class VeDAO
         {
             if (tran != null)
                 tran.Rollback();
-            MessageBox.Show("Lỗi xóa vé!");
+            MessageBox.Show("Lỗi hủy vé!");
             return false;
         }
     }

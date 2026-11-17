@@ -142,7 +142,8 @@ CREATE TABLE ChuyenBay (
   CONSTRAINT CK_CB_GiaVe CHECK (GiaVe >= 0),
   CONSTRAINT CK_CB_TongSoGhe CHECK (TongSoGhe >= 0),
   CONSTRAINT CK_CB_SoVeDaBan CHECK (SoVeDaBan >= 0),
-  CONSTRAINT CK_CB_SoVe CHECK (SoVeDaBan <= TongSoGhe)
+  CONSTRAINT CK_CB_SoVe CHECK (SoVeDaBan <= TongSoGhe),
+  CONSTRAINT CK_CB_TrangThai CHECK (TrangThai IN ('Chưa khởi hành', 'Đã khởi hành', 'Đã hạ cánh', 'Đã hủy'))
 ) ENGINE=InnoDB;
 
 CREATE TABLE Ghe (
@@ -166,6 +167,7 @@ CREATE TABLE DatVe (
   MaVoucher   VARCHAR(20)    NULL,
   PRIMARY KEY (MaDV),
   UNIQUE KEY UQ_DatVe_MaDV_MaChuyenBay (MaDV, MaChuyenBay),
+  CONSTRAINT CK_DV_TrangThai CHECK (TrangThai IN ('Chờ thanh toán', 'Đã thanh toán', 'Đã hủy')),
   CONSTRAINT FK_DV_KH FOREIGN KEY (MaKH) REFERENCES KhachHang (MaKH),
   CONSTRAINT FK_DV_NV FOREIGN KEY (MaNV) REFERENCES NhanVien (MaNV),
   CONSTRAINT FK_DV_CB FOREIGN KEY (MaChuyenBay) REFERENCES ChuyenBay (MaChuyenBay),
@@ -183,6 +185,8 @@ CREATE TABLE HoaDon (
   TrangThai    VARCHAR(30)    NOT NULL DEFAULT 'Chưa thanh toán',
   PRIMARY KEY (MaHD),
   UNIQUE KEY UQ_HoaDon_MaDV (MaDV),
+  CONSTRAINT CK_HD_TrangThai CHECK (TrangThai IN ('Chưa thanh toán', 'Đã thanh toán')),
+  CONSTRAINT CK_HD_PhuongThucTT CHECK (PhuongThucTT IS NULL OR PhuongThucTT IN ('Tiền mặt', 'Chuyển khoản', 'Thẻ')),
   CONSTRAINT FK_HD_KH FOREIGN KEY (MaKH) REFERENCES KhachHang (MaKH),
   CONSTRAINT FK_HD_NV FOREIGN KEY (MaNV) REFERENCES NhanVien (MaNV),
   CONSTRAINT FK_HD_DV FOREIGN KEY (MaDV) REFERENCES DatVe (MaDV)
@@ -197,9 +201,15 @@ CREATE TABLE Ve (
   DonGiaVe    DECIMAL(18,0)  NOT NULL,
   Ngay        DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   MaDV        VARCHAR(10)    NOT NULL,
+  TrangThai   VARCHAR(20)    NOT NULL DEFAULT 'Hiệu lực',
+  -- Vé đã hủy thì nhả ghế và hành khách: 2 cột này bằng NULL nên không tính trùng
+  GheHieuLuc  VARCHAR(10) AS (IF(TrangThai = 'Đã hủy', NULL, MaGhe)) STORED,
+  HKHieuLuc   VARCHAR(10) AS (IF(TrangThai = 'Đã hủy', NULL, MaHK)) STORED,
   PRIMARY KEY (MaVe),
-  UNIQUE KEY UQ_Ve_Chuyen_Ghe (MaChuyenBay, MaGhe),
-  UNIQUE KEY UQ_Ve_Chuyen_HK (MaChuyenBay, MaHK),
+  KEY IX_Ve_MaChuyenBay (MaChuyenBay),
+  UNIQUE KEY UQ_Ve_Chuyen_Ghe (MaChuyenBay, GheHieuLuc),
+  UNIQUE KEY UQ_Ve_Chuyen_HK (MaChuyenBay, HKHieuLuc),
+  CONSTRAINT CK_Ve_TrangThai CHECK (TrangThai IN ('Hiệu lực', 'Đã hủy')),
   KEY IX_Ve_MaDV (MaDV),
   CONSTRAINT FK_Ve_CB FOREIGN KEY (MaChuyenBay) REFERENCES ChuyenBay (MaChuyenBay),
   CONSTRAINT FK_Ve_HV FOREIGN KEY (MaHV) REFERENCES HangVe (MaHV),

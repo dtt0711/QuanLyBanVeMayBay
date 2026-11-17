@@ -18,6 +18,10 @@ public partial class FrmHoaDon : Form
         GiaoDien.ThemNutChon(cboMaNV, "Chọn nhân viên");
         // Khách hàng không cho nhập: lấy theo phiếu đặt vé
         cboMaKH.Enabled = false;
+        cboTrangThai.Items.AddRange(TrangThaiBUS.HoaDon);
+        cboTrangThai.SelectedIndex = 0;
+        cboPhuongThucTT.Items.AddRange(TrangThaiBUS.PhuongThucTT);
+        cboPhuongThucTT.SelectedIndex = 0;
         cboMaDV.SelectedIndexChanged += cboMaDV_SelectedIndexChanged;
     }
 
@@ -137,8 +141,8 @@ public partial class FrmHoaDon : Form
         }
         decimal tongTien = 0;
         decimal.TryParse(txtTongTien.Text, out tongTien);
-        string trangThai = txtTrangThai.Text == "" ? "Chưa thanh toán" : txtTrangThai.Text;
-        return new HoaDonDTO(txtMaHD.Text, GiaTriCombo(cboMaKH), GiaTriCombo(cboMaNV), GiaTriCombo(cboMaDV), dtpNgayLap.Value, tongTien, txtPhuongThucTT.Text, trangThai);
+        string trangThai = cboTrangThai.Text == "" ? "Chưa thanh toán" : cboTrangThai.Text;
+        return new HoaDonDTO(txtMaHD.Text, GiaTriCombo(cboMaKH), GiaTriCombo(cboMaNV), GiaTriCombo(cboMaDV), dtpNgayLap.Value, tongTien, cboPhuongThucTT.Text, trangThai);
     }
 
     private void btnDocDSHD_Click(object sender, EventArgs e)
@@ -190,6 +194,12 @@ public partial class FrmHoaDon : Form
     private void btnXoa_Click(object sender, EventArgs e)
     {
         HoaDonBUS bus = new HoaDonBUS();
+        string loi = bus.KiemTraXoa(txtMaHD.Text);
+        if (loi != "")
+        {
+            MessageBox.Show(loi);
+            return;
+        }
         bus.Xoa(txtMaHD.Text);
         HienThi(bus.DocDSHD());
     }
@@ -202,8 +212,8 @@ public partial class FrmHoaDon : Form
         cboMaNV.SelectedIndex = 0;
         cboMaKH.SelectedIndex = 0;
         cboMaDV.SelectedIndex = 0;
-        txtPhuongThucTT.Clear();
-        txtTrangThai.Text = "Chưa thanh toán";
+        cboPhuongThucTT.SelectedIndex = 0;
+        cboTrangThai.SelectedIndex = 0;
         txtTongTien.Text = "0";
         txtMaHD.Enabled = true;
         HienThiCTHD("");
@@ -277,8 +287,8 @@ public partial class FrmHoaDon : Form
             cboMaNV.SelectedIndex = 0;
         else
             cboMaNV.SelectedValue = hd.MaNV;
-        txtPhuongThucTT.Text = hd.PhuongThucTT;
-        txtTrangThai.Text = hd.TrangThai;
+        cboPhuongThucTT.Text = hd.PhuongThucTT;
+        cboTrangThai.Text = hd.TrangThai;
         txtTongTien.Text = hd.TongTien.ToString("N0");
         txtMaHD.Enabled = false;
         dangNap = false;

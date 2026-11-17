@@ -40,9 +40,16 @@ public class HoaDonBUS
     // ngày lập không trước ngày đặt
     public string KiemTra(HoaDonDTO hd)
     {
+        HoaDonDTO cu = timKiem(hd.MaHD);
+        if (cu != null && cu.TrangThai == TrangThaiBUS.DaThanhToan)
+            return "Hóa đơn " + hd.MaHD + " đã thanh toán, không sửa được.";
         DatVeDTO dv = new DatVeBUS().timKiem(hd.MaDV);
         if (dv == null)
             return "Chọn phiếu đặt vé.";
+        if (dv.TrangThai == TrangThaiBUS.DaHuy)
+            return "Phiếu đặt " + hd.MaDV + " đã hủy, không lập hóa đơn được.";
+        if (!new VeBUS().DocTheoDatVe(hd.MaDV).Exists(v => v.TrangThai != TrangThaiBUS.DaHuy))
+            return "Phiếu đặt " + hd.MaDV + " chưa có vé nào, bán vé trước rồi mới lập hóa đơn.";
         foreach (HoaDonDTO h in DocDSHD())
             if (h.MaDV == hd.MaDV && h.MaHD != hd.MaHD)
                 return "Phiếu đặt " + hd.MaDV + " đã có hóa đơn " + h.MaHD + ".";
@@ -64,6 +71,7 @@ public class HoaDonBUS
         foreach (VeDTO v in ct.VeChuaLapHD(hd.MaHD))
             ct.Them(hd.MaHD, v.MaVe);
         LamMoiDS();
+        DatVeBUS.LamMoiDS();
         return true;
     }
 
@@ -73,16 +81,28 @@ public class HoaDonBUS
         if (!dao.Sua(hd))
             return false;
         LamMoiDS();
+        DatVeBUS.LamMoiDS();
         return true;
+    }
+
+    // Hóa đơn đã thanh toán là chứng từ, không được xóa
+    public string KiemTraXoa(string ma)
+    {
+        HoaDonDTO hd = timKiem(ma);
+        if (hd == null)
+            return "Chọn hóa đơn cần xóa.";
+        if (hd.TrangThai == TrangThaiBUS.DaThanhToan)
+            return "Hóa đơn " + ma + " đã thanh toán, không xóa được.";
+        return "";
     }
 
     public bool Xoa(string ma)
     {
-        DocDSHD();
         HoaDonDAO dao = new HoaDonDAO();
         if (!dao.Xoa(ma))
             return false;
-        dshd.Remove(timKiem(ma));
+        LamMoiDS();
+        DatVeBUS.LamMoiDS();
         return true;
     }
 

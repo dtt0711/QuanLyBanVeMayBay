@@ -372,8 +372,8 @@ INSERT INTO ThamSo (MaThamSo, TenThamSo, GiaTri, DonVi) VALUES ('MAT_KHAU_TOI_TH
 
 -- Các field do chương trình tự tính
 UPDATE ChuyenBay c SET TongSoGhe = (SELECT COUNT(*) FROM Ghe g WHERE g.MaMayBay = c.MaMayBay);
-UPDATE ChuyenBay c SET SoVeDaBan = (SELECT COUNT(*) FROM Ve v WHERE v.MaChuyenBay = c.MaChuyenBay);
-UPDATE DatVe d SET TongTien = GREATEST((SELECT COALESCE(SUM(v.DonGiaVe), 0) FROM Ve v WHERE v.MaDV = d.MaDV) - d.GiamGia, 0);
+UPDATE ChuyenBay c SET SoVeDaBan = (SELECT COUNT(*) FROM Ve v WHERE v.MaChuyenBay = c.MaChuyenBay AND v.TrangThai <> 'Đã hủy');
+UPDATE DatVe d SET TongTien = GREATEST((SELECT COALESCE(SUM(v.DonGiaVe), 0) FROM Ve v WHERE v.MaDV = d.MaDV AND v.TrangThai <> 'Đã hủy') - d.GiamGia, 0);
 UPDATE HoaDon h SET TongTien = GREATEST(
   COALESCE((SELECT SUM(c.ThanhTien) FROM ChiTietHoaDon c WHERE c.MaHD = h.MaHD), 0)
   - (SELECT d.GiamGia FROM DatVe d WHERE d.MaDV = h.MaDV), 0);

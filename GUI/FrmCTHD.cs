@@ -34,6 +34,16 @@ public partial class FrmCTHD : Form
             return;
         NapCombo();
         btnDocDSCTHD_Click(sender, e);
+        string khoa = new CTHDBUS().KiemTraSuaCT(maHD);
+        if (khoa != "")
+        {
+            // Hóa đơn đã thanh toán: chỉ xem chi tiết
+            btnThem.Visible = false;
+            btnXoa.Visible = false;
+            btnThemTatCa.Visible = false;
+            cboMaCB.Enabled = false;
+            Text = "Chi tiết hóa đơn " + maHD + " (đã thanh toán - chỉ xem)";
+        }
     }
 
     // Chỉ cho chọn vé của phiếu đặt này mà chưa được tính tiền
@@ -105,6 +115,12 @@ public partial class FrmCTHD : Form
     {
         if (lvDSCTHD.SelectedItems.Count == 0) return;
         string maVe = lvDSCTHD.SelectedItems[0].SubItems[1].Text;
+        string khoa = new CTHDBUS().KiemTraSuaCT(maHD);
+        if (khoa != "")
+        {
+            MessageBox.Show(khoa);
+            return;
+        }
         new CTHDBUS().Xoa(maHD, maVe);
         btnDocDSCTHD_Click(sender, e);
     }

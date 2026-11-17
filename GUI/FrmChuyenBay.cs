@@ -27,6 +27,8 @@ public partial class FrmChuyenBay : Form
         cboMaMayBay.SelectedIndexChanged += (s, e) => txtTongSoGhe.Text = DemGhe().ToString();
         GiaoDien.KhoaO(txtThoiGianBay);
         dtpThoiGianDen.Enabled = false;
+        cboTrangThai.Items.AddRange(TrangThaiBUS.ChuyenBay);
+        cboTrangThai.SelectedIndex = 0;
         dtpNgayKhoiHanh.ValueChanged += (s, e) => TinhThoiGian();
         dtpNgayDen.ValueChanged += (s, e) => TinhThoiGian();
     }
@@ -129,7 +131,7 @@ public partial class FrmChuyenBay : Form
         // Thêm mới: chưa bán vé nào. Sửa: giữ số vé đã bán đang có
         ChuyenBayDTO cu = laThem ? null : new ChuyenBayBUS().timKiem(txtMaCB.Text);
         int soVeDaBan = cu == null ? 0 : cu.SoVeDaBan;
-        string trangThai = txtTrangThai.Text == "" ? "Chưa khởi hành" : txtTrangThai.Text;
+        string trangThai = cboTrangThai.Text == "" ? "Chưa khởi hành" : cboTrangThai.Text;
         ChuyenBayDTO cb = new ChuyenBayDTO(
             txtMaCB.Text,
             mayBay.MaHHK,
@@ -206,7 +208,7 @@ public partial class FrmChuyenBay : Form
         txtTongSoGhe.Text = "0";
         txtSoVeDaBan.Text = "0";
         txtGiaVe.Clear();
-        txtTrangThai.Text = "Chưa khởi hành";
+        cboTrangThai.SelectedIndex = 0;
         txtMaCB.Enabled = true;
         TinhThoiGian();
     }
@@ -249,7 +251,7 @@ public partial class FrmChuyenBay : Form
         txtTongSoGhe.Text = cb.TongSoGhe.ToString();
         txtSoVeDaBan.Text = cb.SoVeDaBan.ToString();
         txtGiaVe.Text = cb.GiaVe.ToString();
-        txtTrangThai.Text = cb.TrangThai;
+        cboTrangThai.Text = cb.TrangThai;
         txtMaCB.Enabled = false;
     }
 }
